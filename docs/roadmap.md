@@ -82,6 +82,10 @@ Allow users to securely access the application.
 - [ ] JWT generation
 - [ ] Token validation
 
+Current scaffold: `POST /api/login` validates the request shape but returns
+`501 LOGIN_NOT_IMPLEMENTED` until credential verification is backed by user
+storage. It does not authenticate users or issue sessions yet.
+
 ### Database
 
 - [ ] User table

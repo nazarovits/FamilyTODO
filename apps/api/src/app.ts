@@ -1,9 +1,32 @@
 import express from "express";
+import { apiRouter } from "./routes/api.js";
 
 export const app = express();
 
 app.use(express.json());
+app.use(apiRouter);
+app.use(
+  (
+    error: unknown,
+    _request: express.Request,
+    response: express.Response,
+    next: express.NextFunction,
+  ) => {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "type" in error &&
+      error.type === "entity.parse.failed"
+    ) {
+      response.status(400).json({
+        error: {
+          code: "INVALID_JSON",
+          message: "Request body must be valid JSON.",
+        },
+      });
+      return;
+    }
 
-app.get("/api/health", (_request, response) => {
-  response.json({ status: "ok" });
-});
+    next(error);
+  },
+);
