@@ -59,12 +59,15 @@ Technology:
 - TypeScript
 - Vite
 - TanStack Query
+- React Router
 
 Location:
 
 ```text
 apps/web
 ```
+
+Deploy the web app as a Vercel project with `apps/web` as its root directory.
 
 ---
 
@@ -73,13 +76,17 @@ apps/web
 Technology:
 
 - Node.js
-- REST API
+- TypeScript
+- Express REST API
 
 Location:
 
 ```text
 apps/api
 ```
+
+Run locally with `pnpm dev:api`. The `api/index.ts` entrypoint is intended for a
+separate Vercel project rooted at `apps/api`.
 
 ---
 
@@ -103,3 +110,23 @@ Location:
 ```text
 packages/shared-types
 ```
+
+---
+
+# Local Development
+
+Install dependencies from the repository root:
+
+```sh
+pnpm install
+```
+
+Run the web and API apps in separate terminals:
+
+```sh
+pnpm dev:web
+pnpm dev:api
+```
+
+The web development server proxies `/api` requests to the local API on port
+3001. The initial API health check is available at `/api/health`.

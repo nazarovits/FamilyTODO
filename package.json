@@ -1,0 +1,14 @@
+{
+  "name": "familytodo",
+  "private": true,
+  "packageManager": "pnpm@12.16.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev:web": "pnpm --filter @familytodo/web dev",
+    "dev:api": "pnpm --filter @familytodo/api dev",
+    "build": "pnpm -r --if-present build",
+    "typecheck": "pnpm -r --if-present typecheck"
+  }
+}
