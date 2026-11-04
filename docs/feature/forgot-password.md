@@ -6,9 +6,8 @@ Allow a family member to request a password-reset link by email and set a new
 password using a short-lived, single-use token. The same flow sets the initial
 password for accounts that do not yet have one.
 
-This document describes the planned vertical slice. The Resend email service
-is implemented, but no reset UI, API handlers, or token behavior is implemented
-yet.
+This document tracks the vertical slice. The Resend email service is
+implemented; the UI, API handlers, and token behavior are not implemented yet.
 
 ## Decisions
 
@@ -40,10 +39,17 @@ apps/api/src/
     auth.ts                      # Zod request schemas
   services/
     email/
-      resend-email.service.ts    # Resend client and provider interaction
-      password-reset-email.ts    # reset email subject, text, and HTML
+      resend-email.service.ts    # implemented Resend client and provider interaction
   lib/
     prisma.ts                    # existing Prisma client
+apps/web/src/
+  routes/
+    AppRoute.ts                  # route constants
+    routes.tsx                   # route definitions
+  features/
+    ForgotPassword/              # request-reset page and API integration
+    ResetPassword/               # set-password page and API integration
+    Error/                       # generic error page
 ```
 
 The auth handler remains responsible for the flow's database operations for
@@ -98,7 +104,8 @@ header. Never log the raw token or reset URL.
 3. The API validates the request with a Zod schema.
 4. For a known account, the API invalidates prior unused reset tokens, creates
    a new random token, stores only its hash with a one-hour expiry, and sends
-   the raw token in a link to the configured web app.
+   the raw token in a link to the configured web app's reset route as a URL
+   fragment (for example, `/reset-password#token=...`).
 5. The API returns the same generic confirmation for known and unknown emails,
    so callers cannot determine which addresses have accounts.
 6. If delivery fails, log a safe provider error for operations, but keep the
@@ -107,7 +114,7 @@ header. Never log the raw token or reset URL.
 Endpoint:
 
 ```text
-POST /api/password/forgot
+POST /api/forgot-password
 ```
 
 Request:
@@ -120,7 +127,9 @@ Request:
 
 ### Set a New Password
 
-1. The emailed link opens the reset-password screen with the raw token.
+1. The emailed link opens the reset-password screen with the raw token in the
+   URL fragment. The page reads it and removes it from the visible URL
+   immediately.
 2. The screen collects a new password and confirmation; confirmation is
    checked in the UI and is not sent as a separate credential.
 3. The API validates the token and password using a Zod schema.
@@ -135,7 +144,7 @@ Request:
 Endpoint:
 
 ```text
-POST /api/password/reset
+POST /api/reset-password
 ```
 
 Request:
@@ -146,6 +155,78 @@ Request:
   "password": "new password"
 }
 ```
+
+The password-confirmation field is a UI-only check. Send only the new
+`password` and reset `token` to the API; do not send the confirmation as a
+second credential.
+
+## Web UI Requirements
+
+### Routes and Pages
+
+- Add `AppRoute.ForgotPassword` for `/forgot-password` and register the page in
+  the browser router.
+- Replace the login page's plain forgot-password anchor with a router link to
+  `AppRoute.ForgotPassword`.
+- Add a responsive ForgotPassword page with an email input, submit button,
+  back-to-login link, accessible validation/error feedback, and pending state.
+- Validate the email in the browser for usability, while always repeating
+  validation in the API. On a successful generic API response, show a neutral
+  confirmation to check the inbox and spam folder; do not claim that an email
+  was definitely sent or that the account exists.
+- Add `AppRoute.ResetPassword` for `/reset-password`. Read the token from the
+  URL fragment (for example, `#token=...`) so it is not sent in the initial
+  HTTP request. Remove it from the visible browser URL/history as soon as the
+  page reads it, and keep it only in page memory for the reset submission.
+- Add a responsive ResetPassword page with new-password and confirmation
+  inputs, client-side policy validation, pending state, and accessible
+  feedback. On success, confirm the password was changed and link to login;
+  never sign in automatically. On a 4xx response, show a generic message that
+  the link is invalid or expired and offer a way to request another one. On a
+  5xx response, navigate to the generic error page.
+- Add `AppRoute.Error` and a responsive generic Error page with a safe,
+  non-technical message and a link back to login. Do not display server
+  exception details, tokens, or request data.
+- For both forms, prevent duplicate submissions while pending, preserve
+  keyboard operation and visible focus, associate errors with inputs, and
+  announce status/errors to assistive technology. Provide a usable mobile
+  layout as well as a desktop layout.
+
+### UI/API Response Behavior
+
+- Forgot-password success: display the same confirmation for any syntactically
+  valid email, regardless of whether an account exists.
+- Forgot-password 4xx: show a safe input/request error without echoing
+  potentially sensitive content. Forgot-password 5xx: navigate to
+  `AppRoute.Error`. A network failure without an HTTP response should show a
+  retryable connection message rather than pretending the request succeeded.
+- Reset-password 4xx: use one generic invalid/expired-link message; do not
+  expose whether a token was unknown, expired, or already used.
+- Reset-password 5xx: navigate to `AppRoute.Error`. Network failures should
+  show a retryable connection message, keeping the token only in memory.
+- Send requests through the existing API client and TanStack Query mutation
+  pattern. The UI can be implemented against these endpoint contracts before
+  the API step, using mocked responses for interaction tests.
+
+### Password Policy
+
+Use the same password policy in the UI and API:
+
+- Minimum 12 and maximum 128 Unicode code points.
+- Unicode characters are allowed.
+- Whitespace is not allowed, including spaces, tabs, or line breaks.
+- Do not require arbitrary combinations of symbols, digits, or letter case.
+- Do not silently truncate passwords.
+
+Implement the policy once as a runtime validator in
+`packages/shared-types` and import it from both the web UI and API. The API
+must always validate independently using that shared validator; browser input
+attributes alone are not validation. Count Unicode code points consistently
+in the shared validator rather than relying on JavaScript string `.length` or
+HTML `maxlength`, which count UTF-16 code units. Do not normalize the password
+before comparing or hashing it. Use `autocomplete="new-password"` for both
+password fields. Confirmation must match locally and must never be logged or
+sent to the API.
 
 ## Security and Reliability
 
@@ -161,34 +242,58 @@ Request:
 - Do not automatically create a session after reset.
 - Treat Resend delivery errors as operational failures; do not return
   account-existence or provider details to the requester.
+- Keep reset tokens out of query strings, analytics, client/server logs,
+  telemetry, and third-party resources. The reset page should avoid external
+  scripts/images, set a restrictive referrer policy (at least
+  `no-referrer`), and clear the fragment immediately after reading it.
+- Do not store the token or password in local/session storage, cookies, or
+  persistent client state. Do not put either value in error messages or
+  telemetry. The password should be sent only over HTTPS in the reset request.
+- Use a generic reset-token failure response for invalid, expired, and used
+  tokens. A 4xx UI message must not distinguish these cases.
+- Ensure successful password reset revokes existing sessions server-side; the
+  UI must not create a replacement session or automatically log in.
+- Validate all client input again on the server. Client-side checks are only
+  usability aids and are not security controls.
 
 ## Implementation Sequence
 
-1. **Email provider setup**
-   - Add the Resend SDK and API email service.
-   - Configure the Resend template with the `resetUrl` variable and a verified
-     sender; keep its ID, sender, and API key in API-only environment settings.
-   - Verify sending to an allowed test recipient without exposing secrets.
-2. **Forgot-password API**
-   - Add the Zod request schema, handler, and route.
-   - Store hashed reset tokens and send the email.
-   - Preserve a generic response for known and unknown accounts.
-3. **Reset-password API**
-   - Add token/password validation and the atomic password/session update.
-   - Cover expired, used, malformed, and valid token cases.
-4. **Web UI**
-   - Add forgot-password and reset-password routes and screens.
-   - Connect them through the existing web API client and TanStack Query.
-   - Add pending, success, and error states.
-5. **End-to-end verification**
-   - Test without sending real mail by injecting or mocking the email service.
-   - Perform one manual delivery check using Resend's test sender.
-   - Verify successful reset, token expiry/reuse, initial password setup, and
-     session revocation.
-6. **Production readiness**
-   - Verify a sending domain and DNS records.
-   - Set production environment variables in the Vercel API project.
-   - Confirm delivery to intended family recipients before enabling the flow.
+- [x] **1. Email provider setup**
+  - Add the Resend SDK and API email service.
+  - Configure the Resend template with the `resetUrl` variable and a verified
+    sender; keep its ID, sender, and API key in API-only environment settings.
+- [x] **2. Web UI**
+  - Add `ForgotPassword`, `ResetPassword`, and `Error` route constants and
+    register their responsive pages.
+  - Link the login page's forgot-password action to the ForgotPassword route.
+  - Implement email/password client validation, accessible pending/success/
+    error states, the back-to-login links, and the agreed password policy.
+  - Integrate with `POST /api/forgot-password` and `POST /api/reset-password`
+    through the existing web API client and TanStack Query pattern. The API
+    handlers are tracked in the following steps and are not implemented yet.
+  - Read the reset token from the URL fragment and clear it immediately.
+- [ ] **3. Forgot-password API**
+  - Add the Zod request schema, handler, and route for
+    `POST /api/forgot-password`.
+  - Store hashed reset tokens and send the email.
+  - Preserve a generic response for known and unknown emails, including
+    delivery-failure handling.
+- [ ] **4. Reset-password API**
+  - Add token/password validation and the atomic password/session update for
+    `POST /api/reset-password`.
+  - Enforce the agreed password policy; do not accept or require the
+    confirmation field.
+  - Cover expired, used, malformed, valid, and initial-password cases.
+- [ ] **5. End-to-end verification**
+  - Test without sending real mail by injecting or mocking the email service.
+  - Verify UI validation, status handling, responsive layouts, and token
+    removal from the URL.
+  - Verify successful reset, token expiry/reuse, initial password setup, and
+    session revocation.
+- [ ] **6. Production readiness**
+  - Verify a sending domain and DNS records.
+  - Set production environment variables in the Vercel API project.
+  - Confirm delivery to intended family recipients before enabling the flow.
 
 ## Acceptance Criteria
 

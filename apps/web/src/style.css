@@ -16,14 +16,16 @@ body {
   margin: 0;
 }
 
-.login-page {
+.login-page,
+.auth-page {
   display: grid;
   min-height: 100vh;
   place-items: center;
   padding: 32px 16px;
 }
 
-.login-panel {
+.login-panel,
+.auth-panel {
   width: min(100%, 400px);
 }
 
@@ -63,13 +65,15 @@ body {
   gap: 16px;
 }
 
-.login-password-label a {
+.login-password-label a,
+.auth-back-link {
   color: #374151;
   font-size: 0.875rem;
   text-underline-offset: 3px;
 }
 
-.login-field input {
+.login-field input,
+.auth-field input {
   width: 100%;
   min-height: 48px;
   padding: 12px 14px;
@@ -82,12 +86,16 @@ body {
 
 .login-field input:focus-visible,
 .login-password-label a:focus-visible,
-.login-submit:focus-visible {
+.login-submit:focus-visible,
+.auth-field input:focus-visible,
+.auth-submit:focus-visible,
+.auth-back-link:focus-visible {
   outline: 3px solid #93c5fd;
   outline-offset: 2px;
 }
 
-.login-submit {
+.login-submit,
+.auth-submit {
   min-height: 48px;
   margin-top: 8px;
   border: 0;
@@ -99,24 +107,93 @@ body {
   font-weight: 600;
 }
 
-.login-submit:hover {
+.login-submit:hover,
+.auth-submit:hover {
   background: #374151;
 }
 
-.login-submit:disabled {
+.login-submit:disabled,
+.auth-submit:disabled {
   cursor: wait;
   opacity: 0.7;
 }
 
-.login-error {
+.login-error,
+.auth-error {
   margin: -8px 0 0;
   color: #b91c1c;
   font-size: 0.9375rem;
   line-height: 1.5;
 }
 
+.auth-panel {
+  display: grid;
+  gap: 24px;
+}
+
+.auth-brand,
+.auth-title,
+.auth-description {
+  margin: 0;
+}
+
+.auth-brand {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.auth-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.auth-description,
+.auth-success {
+  color: #4b5563;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.auth-form {
+  display: grid;
+  gap: 24px;
+}
+
+.auth-field {
+  display: grid;
+  gap: 8px;
+}
+
+.auth-field label {
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.auth-field-hint {
+  margin: 0;
+  color: #4b5563;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.auth-submit {
+  margin-top: 8px;
+}
+
+.auth-success {
+  margin: 0;
+  color: #166534;
+}
+
+.auth-back-link {
+  justify-self: start;
+}
+
 @media (min-width: 768px) {
-  .login-page {
+  .login-page,
+  .auth-page {
     padding: 48px 24px;
   }
 }

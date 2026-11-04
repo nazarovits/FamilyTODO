@@ -1,5 +1,7 @@
 import type { FormEvent } from "react";
+import { Link } from "react-router-dom";
 import { ApiRequestError } from "../../lib/apiClient";
+import { AppRoute } from "../../routes/AppRoute";
 import { useLogin } from "./useLogin";
 
 export function LoginPage() {
@@ -50,7 +52,7 @@ export function LoginPage() {
           <div className="login-field">
             <div className="login-password-label">
               <label htmlFor="password">Password</label>
-              <a href="/forgot-password">Forgot password?</a>
+              <Link to={AppRoute.ForgotPassword}>Forgot password?</Link>
             </div>
             <input
               autoComplete="current-password"
