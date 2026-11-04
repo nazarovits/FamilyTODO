@@ -78,18 +78,19 @@ Allow users to securely access the application.
 
 ### API
 
-- [ ] Login endpoint
-- [ ] JWT generation
-- [ ] Token validation
+- [x] Login endpoint with password-hash verification
+- [x] Database-backed session cookie
+- [x] Session lookup and logout endpoints
 
-Current scaffold: `POST /api/login` validates the request shape but returns
-`501 LOGIN_NOT_IMPLEMENTED` until credential verification is backed by user
-storage. It does not authenticate users or issue sessions yet.
+Login uses Argon2id password hashes and opaque session tokens stored as hashes.
+Accounts without a password set are rejected with the same invalid-credentials
+response as other failed logins.
 
 ### Database
 
-- [ ] User table
-- [ ] Password hash storage
+- [x] User and profile tables
+- [x] Password hash storage
+- [x] Session and password reset token tables
 
 ### Business Rules
 
@@ -101,6 +102,9 @@ storage. It does not authenticate users or issue sessions yet.
 - [ ] Successful login
 - [ ] Invalid password
 - [ ] Unknown user
+- [ ] Login without a set password
+- [ ] Session persistence and expiry
+- [ ] Logout revokes session
 
 ---
 
@@ -112,7 +116,7 @@ storage. It does not authenticate users or issue sessions yet.
 
 ### API
 
-- [ ] Logout endpoint (optional)
+- [x] Logout endpoint
 
 ### Tests
 

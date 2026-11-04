@@ -1,9 +1,15 @@
 import { Router } from "express";
 
-import { postLogin } from "../handlers/auth/auth.js";
+import {
+  getSession,
+  postLogin,
+  postLogout,
+} from "../handlers/auth/auth.js";
 
 const router = Router();
 
 router.post("/login", postLogin);
+router.get("/session", getSession);
+router.post("/logout", postLogout);
 
 export default router;

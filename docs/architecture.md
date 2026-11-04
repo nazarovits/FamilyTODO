@@ -11,10 +11,12 @@
 
 - Node.js
 - REST API
+- Prisma ORM
 
 ## Database
 
 - PostgreSQL
+- Neon
 
 ## Hosting
 
@@ -24,11 +26,11 @@ Frontend:
 
 Backend:
 
-- TBD
+- Vercel
 
 Database:
 
-- PostgreSQL cloud provider TBD
+- Neon PostgreSQL, connected through Vercel
 
 ## Future
 

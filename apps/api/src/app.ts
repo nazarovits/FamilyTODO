@@ -3,7 +3,7 @@ import { apiRouter } from "./routes/api.js";
 
 export const app = express();
 
-app.use(express.json());
+app.use(express.json({ limit: "16kb" }));
 app.use(apiRouter);
 app.use(
   (
@@ -28,5 +28,22 @@ app.use(
     }
 
     next(error);
+  },
+);
+
+app.use(
+  (
+    error: unknown,
+    _request: express.Request,
+    response: express.Response,
+    _next: express.NextFunction,
+  ) => {
+    console.error("Unhandled API error:", error);
+    response.status(500).json({
+      error: {
+        code: "INTERNAL_SERVER_ERROR",
+        message: "An unexpected error occurred.",
+      },
+    });
   },
 );

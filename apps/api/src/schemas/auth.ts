@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const loginRequestSchema = z.object({
-  email: z.email(),
+  email: z.string().trim().toLowerCase().email(),
   password: z.string().min(1),
 });
 
