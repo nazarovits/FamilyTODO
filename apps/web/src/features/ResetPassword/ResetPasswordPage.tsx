@@ -75,7 +75,11 @@ export function ResetPasswordPage() {
   const errorMessage = passwordError
     ? passwordError
     : resetMutation.error instanceof ApiRequestError
-      ? "This password reset link is invalid or has expired. Request a new link to continue."
+      ? resetMutation.error.code === "INVALID_PASSWORD"
+        ? "Password must be 12–128 characters and cannot contain whitespace."
+        : resetMutation.error.status === 429
+          ? "Too many attempts. Please wait a while before trying again."
+          : "This password reset link is invalid or has expired. Request a new link to continue."
       : resetMutation.error
         ? "Unable to connect. Please try again."
         : null;

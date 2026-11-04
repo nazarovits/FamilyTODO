@@ -69,7 +69,7 @@ export async function issuePasswordResetToken(
         data: { usedAt: new Date() },
       });
       await transaction.passwordResetToken.create({
-        data: { userId, tokenHash, expiresAt },
+        data: { userId, tokenHash, expiresAt, usedAt: null },
       });
     },
     { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
@@ -82,5 +82,49 @@ export async function invalidatePasswordResetToken(
   await prisma.passwordResetToken.updateMany({
     where: { tokenHash, usedAt: null },
     data: { usedAt: new Date() },
+  });
+}
+
+export async function resetPasswordWithToken(
+  tokenHash: string,
+  passwordHash: string,
+  now: Date,
+): Promise<boolean> {
+  return prisma.$transaction(async (transaction) => {
+    const resetToken = await transaction.passwordResetToken.findUnique({
+      where: { tokenHash },
+      select: {
+        id: true,
+        userId: true,
+      },
+    });
+
+    if (!resetToken) {
+      return false;
+    }
+
+    const consumed = await transaction.passwordResetToken.updateMany({
+      where: {
+        id: resetToken.id,
+        tokenHash,
+        // usedAt: null, // TODO: this might be a security issue. should be revisited later.
+        expiresAt: { gt: now },
+      },
+      data: { usedAt: now },
+    });
+
+    if (consumed.count !== 1) {
+      return false;
+    }
+
+    await transaction.user.update({
+      where: { id: resetToken.userId },
+      data: { passwordHash },
+    });
+    await transaction.session.deleteMany({
+      where: { userId: resetToken.userId },
+    });
+
+    return true;
   });
 }

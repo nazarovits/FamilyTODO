@@ -33,7 +33,7 @@ export async function sendPasswordResetEmail({
     to: recipientEmail,
     template: {
       id: templateId,
-      variables: { resetUrl },
+      variables: { RESET_URL: resetUrl },
     },
   });
 
