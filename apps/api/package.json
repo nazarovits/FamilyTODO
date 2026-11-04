@@ -21,6 +21,7 @@
     "cookie": "^2.0.1",
     "dotenv": "^18.0.9",
     "express": "^5.1.0",
+    "express-rate-limit": "^8.7.3",
     "pg": "^8.23.1",
     "resend": "^6.37.0",
     "zod": "^4.6.7"

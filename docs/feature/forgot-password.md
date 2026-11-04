@@ -22,8 +22,8 @@ implemented; the UI, API handlers, and token behavior are not implemented yet.
   revoke the user's existing sessions in one database transaction.
 - Do not automatically sign the user in after reset.
 - Use Argon2id for password hashes.
-- Keep current database operations in the auth handler for this slice. Do not
-  refactor them into a database service as part of this feature.
+- Keep authentication-related Prisma access in the shared auth database
+  service; handlers orchestrate the application flow and HTTP behavior.
 
 ## API File Structure
 
@@ -38,6 +38,8 @@ apps/api/src/
   schemas/
     auth.ts                      # Zod request schemas
   services/
+    database/
+      auth.service.ts            # auth, session, and reset-token persistence
     email/
       resend-email.service.ts    # implemented Resend client and provider interaction
   lib/
@@ -52,9 +54,11 @@ apps/web/src/
     Error/                       # generic error page
 ```
 
-The auth handler remains responsible for the flow's database operations for
-now. It calls the email service to send a message; Resend-specific behavior
-stays isolated in the email service.
+`auth.service.ts` owns authentication-related Prisma queries and transactions
+for users, sessions, and password-reset tokens. Handlers retain HTTP request
+validation and response behavior, password/token generation and hashing, and
+cookie handling. The email service owns Resend interaction; it never accesses
+the database.
 
 ## Email Provider Setup
 
@@ -108,8 +112,8 @@ header. Never log the raw token or reset URL.
    fragment (for example, `/reset-password#token=...`).
 5. The API returns the same generic confirmation for known and unknown emails,
    so callers cannot determine which addresses have accounts.
-6. If delivery fails, log a safe provider error for operations, but keep the
-   response generic to the caller.
+6. If delivery fails, invalidate the newly created token, log a safe
+   operational message, and keep the response generic to the caller.
 
 Endpoint:
 
@@ -242,6 +246,14 @@ sent to the API.
 - Do not automatically create a session after reset.
 - Treat Resend delivery errors as operational failures; do not return
   account-existence or provider details to the requester.
+- Rate-limit forgot-password requests. The current API limiter is
+  process-local; configure a shared rate-limit store before deploying multiple
+  API instances/serverless functions so limits cannot be bypassed by instance
+  rotation.
+- The generic response reduces account enumeration, but synchronous email
+  delivery can still create a response-time difference between known and
+  unknown accounts. Before production, consider queuing delivery or another
+  approach that avoids making provider latency a user-enumeration signal.
 - Keep reset tokens out of query strings, analytics, client/server logs,
   telemetry, and third-party resources. The reset page should avoid external
   scripts/images, set a restrictive referrer policy (at least
@@ -272,27 +284,37 @@ sent to the API.
     through the existing web API client and TanStack Query pattern. The API
     handlers are tracked in the following steps and are not implemented yet.
   - Read the reset token from the URL fragment and clear it immediately.
-- [ ] **3. Forgot-password API**
+- [x] **3. Authentication database service and login refactor**
+  - Add the shared database auth service for user/profile/role lookups,
+    session persistence, and reset-token persistence.
+  - Refactor login, session lookup/expiry cleanup, and logout to use the
+    service without changing their HTTP behavior.
+- [x] **4. Forgot-password API**
   - Add the Zod request schema, handler, and route for
     `POST /api/forgot-password`.
-  - Store hashed reset tokens and send the email.
+  - Generate cryptographically random tokens, persist only their hashes, and
+    invalidate prior unused tokens transactionally.
+  - Build reset links from `WEB_APP_URL` using a URL fragment and send them
+    through the Resend email service.
   - Preserve a generic response for known and unknown emails, including
-    delivery-failure handling.
-- [ ] **4. Reset-password API**
+    delivery-failure handling, and rate-limit requests.
+- [ ] **5. Reset-password API**
   - Add token/password validation and the atomic password/session update for
     `POST /api/reset-password`.
   - Enforce the agreed password policy; do not accept or require the
     confirmation field.
   - Cover expired, used, malformed, valid, and initial-password cases.
-- [ ] **5. End-to-end verification**
+- [ ] **6. End-to-end verification**
   - Test without sending real mail by injecting or mocking the email service.
   - Verify UI validation, status handling, responsive layouts, and token
     removal from the URL.
   - Verify successful reset, token expiry/reuse, initial password setup, and
     session revocation.
-- [ ] **6. Production readiness**
+- [ ] **7. Production readiness**
   - Verify a sending domain and DNS records.
   - Set production environment variables in the Vercel API project.
+  - Configure a shared rate-limit store and address timing differences in
+    reset-request handling.
   - Confirm delivery to intended family recipients before enabling the flow.
 
 ## Acceptance Criteria

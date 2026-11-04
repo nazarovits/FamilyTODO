@@ -8,7 +8,13 @@ import {
   sessionLifetimeMs,
   setSessionCookie,
 } from "../../auth/session.js";
-import { prisma } from "../../lib/prisma.js";
+import {
+  createSession,
+  deleteSessionById,
+  deleteSessionByTokenHash,
+  findSessionByTokenHash,
+  findUserForLogin,
+} from "../../services/database/auth.service.js";
 import { loginRequestSchema } from "../../schemas/auth.js";
 import { z } from "zod";
 
@@ -30,14 +36,7 @@ export async function postLogin(req: Request, res: Response): Promise<void> {
   }
 
   const { email, password } = result.data;
-  const user = await prisma.user.findUnique({
-    where: { email },
-    include: {
-      profile: {
-        include: { role: true },
-      },
-    },
-  });
+  const user = await findUserForLogin(email);
 
   if (!user?.passwordHash) {
     res.status(401).json({
@@ -63,13 +62,7 @@ export async function postLogin(req: Request, res: Response): Promise<void> {
 
   const token = createSessionToken();
   const expiresAt = new Date(Date.now() + sessionLifetimeMs);
-  await prisma.session.create({
-    data: {
-      userId: user.id,
-      tokenHash: hashSessionToken(token),
-      expiresAt,
-    },
-  });
+  await createSession(user.id, hashSessionToken(token), expiresAt);
 
   setSessionCookie(res, token);
   res.status(200).json({
@@ -96,22 +89,11 @@ export async function getSession(req: Request, res: Response): Promise<void> {
   }
 
   const tokenHash = hashSessionToken(token);
-  const session = await prisma.session.findUnique({
-    where: { tokenHash },
-    include: {
-      user: {
-        include: {
-          profile: {
-            include: { role: true },
-          },
-        },
-      },
-    },
-  });
+  const session = await findSessionByTokenHash(tokenHash);
 
   if (!session || session.expiresAt <= new Date()) {
     if (session) {
-      await prisma.session.delete({ where: { id: session.id } });
+      await deleteSessionById(session.id);
     }
 
     clearSessionCookie(res);
@@ -138,9 +120,7 @@ export async function postLogout(req: Request, res: Response): Promise<void> {
   const token = getSessionToken(req);
 
   if (token) {
-    await prisma.session.deleteMany({
-      where: { tokenHash: hashSessionToken(token) },
-    });
+    await deleteSessionByTokenHash(hashSessionToken(token));
   }
 
   clearSessionCookie(res);
