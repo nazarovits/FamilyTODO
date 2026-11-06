@@ -6,9 +6,13 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev:web": "pnpm --filter @familytodo/web dev",
-    "dev:api": "pnpm --filter @familytodo/api dev",
+    "dev:web": "pnpm --filter \"@familytodo/web^...\" run build && pnpm --filter @familytodo/web dev",
+    "dev:api": "pnpm --filter \"@familytodo/api^...\" run build && pnpm --filter @familytodo/api dev",
     "build": "pnpm -r --if-present build",
-    "typecheck": "pnpm -r --if-present typecheck"
+    "build:api": "pnpm --filter @familytodo/api run build",
+    "build:web": "pnpm --filter \"@familytodo/web...\" run build",
+    "typecheck": "pnpm run typecheck:api && pnpm run typecheck:web",
+    "typecheck:api": "pnpm --filter \"@familytodo/api^...\" run build && pnpm --filter @familytodo/api typecheck",
+    "typecheck:web": "pnpm --filter \"@familytodo/web^...\" run build && pnpm --filter @familytodo/web typecheck"
   }
 }

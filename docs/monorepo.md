@@ -85,8 +85,12 @@ Location:
 apps/api
 ```
 
-Run locally with `pnpm dev:api`. The `api/index.ts` entrypoint is intended for a
-separate Vercel project rooted at `apps/api`.
+Run locally with `pnpm dev:api`. For Vercel, set the project root to
+`apps/api`, enable **Include source files outside of the Root Directory in the
+Build Step**, and run `pnpm run build`. The
+`apps/api/api/[...path].ts` serverless function forwards API requests to the
+compiled Express app. The API build script uses pnpm's workspace dependency
+selector to build its workspace dependencies before compiling the API.
 
 ---
 
