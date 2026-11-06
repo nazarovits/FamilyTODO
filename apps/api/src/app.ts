@@ -1,10 +1,12 @@
 import express from "express";
+import { resolve } from "node:path";
 import { apiRouter } from "./routes/api.js";
 
 export const app = express();
 
 app.set("trust proxy", "loopback");
 app.use(express.json({ limit: "16kb" }));
+app.use(express.static(resolve(process.cwd(), "public")));
 app.use(apiRouter);
 app.use(
   (

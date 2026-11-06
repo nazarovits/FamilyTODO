@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="The FamilyTODO API service is running."
+    />
+    <title>FamilyTODO API</title>
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: system-ui, sans-serif;
+        color: #1f2937;
+        background: #f9fafb;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        display: grid;
+        min-width: 320px;
+        min-height: 100vh;
+        min-height: 100dvh;
+        place-items: center;
+        margin: 0;
+        padding: 24px 16px;
+      }
+
+      main {
+        width: min(100%, 560px);
+        padding: clamp(24px, 6vw, 40px);
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0 8px 24px rgb(15 23 42 / 7%);
+      }
+
+      h1 {
+        margin: 0 0 16px;
+        font-size: clamp(1.5rem, 6vw, 2rem);
+        line-height: 1.2;
+      }
+
+      p {
+        margin: 0;
+        color: #4b5563;
+        line-height: 1.6;
+      }
+
+      a {
+        display: inline-flex;
+        min-height: 44px;
+        align-items: center;
+        margin-top: 24px;
+        padding: 8px 16px;
+        border-radius: 6px;
+        background: #1f2937;
+        color: #fff;
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      a:focus-visible {
+        outline: 3px solid #93c5fd;
+        outline-offset: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>FamilyTODO API</h1>
+      <p>The API service is running and ready to receive requests.</p>
+      <a href="/api/health">Check API health</a>
+    </main>
+  </body>
+</html>
