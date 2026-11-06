@@ -13,17 +13,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-export async function postJson(
+async function requestJson(
   path: string,
-  body: unknown,
+  init: RequestInit,
 ): Promise<unknown> {
-  const response = await fetch(path, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const response = await fetch(path, init);
   const responseText = await response.text();
   let responseBody: unknown;
 
@@ -53,4 +47,21 @@ export async function postJson(
   }
 
   return responseBody;
+}
+
+export async function getJson(path: string): Promise<unknown> {
+  return requestJson(path, { method: "GET" });
+}
+
+export async function postJson(
+  path: string,
+  body: unknown,
+): Promise<unknown> {
+  return requestJson(path, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
 }
