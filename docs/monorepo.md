@@ -89,8 +89,10 @@ Run locally with `pnpm dev:api`. For Vercel, set the project root to
 `apps/api`, enable **Include source files outside of the Root Directory in the
 Build Step**, and run `pnpm run build`. The
 `apps/api/api/[...path].ts` serverless function forwards API requests to the
-compiled Express app. The API build script uses pnpm's workspace dependency
-selector to build its workspace dependencies before compiling the API.
+compiled Express app. `apps/api/vercel.json` includes `public/**` in the
+function bundle so the welcome page and public assets are available at runtime.
+The API build script uses pnpm's workspace dependency selector to build its
+workspace dependencies before compiling the API.
 
 ---
 
