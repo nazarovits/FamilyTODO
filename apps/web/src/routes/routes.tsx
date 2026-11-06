@@ -1,7 +1,11 @@
 import { AppRoute } from "./AppRoute";
 import { createBrowserRouter } from "react-router-dom";
 
-import MainPage from "../features/Main";
+import { AppLayout } from "../layouts/AppLayout";
+import HomePage from "../features/Home";
+import TasksPage from "../features/Tasks";
+import ActivityPage from "../features/Activity";
+import ProfilePage from "../features/Profile";
 import LoginPage from "../features/Login";
 import ForgotPasswordPage from "../features/ForgotPassword";
 import ResetPasswordPage, {
@@ -11,8 +15,25 @@ import ErrorPage from "../features/Error";
 
 export const router = createBrowserRouter([
   {
-    path: "/",
-    element: <MainPage />,
+    element: <AppLayout />,
+    children: [
+      {
+        path: AppRoute.Home,
+        element: <HomePage />,
+      },
+      {
+        path: AppRoute.Tasks,
+        element: <TasksPage />,
+      },
+      {
+        path: AppRoute.Activity,
+        element: <ActivityPage />,
+      },
+      {
+        path: AppRoute.Profile,
+        element: <ProfilePage />,
+      },
+    ],
   },
   {
     path: AppRoute.Login,

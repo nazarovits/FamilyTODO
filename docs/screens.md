@@ -6,6 +6,11 @@ This document describes all MVP screens, their purpose, visible information, nav
 
 # Navigation
 
+The initial web implementation renders the bottom navigation only after a
+successful login, using in-memory UI state. Home remains directly accessible
+as a placeholder before login. Session restoration after refresh and protected
+API authorization are deferred to a later step.
+
 ## Child
 
 Bottom navigation:

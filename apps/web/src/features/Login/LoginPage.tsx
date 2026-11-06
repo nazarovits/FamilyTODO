@@ -1,10 +1,13 @@
 import type { FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../auth/AuthContext";
 import { ApiRequestError } from "../../lib/apiClient";
 import { AppRoute } from "../../routes/AppRoute";
 import { useLogin } from "./useLogin";
 
 export function LoginPage() {
+  const { setUser } = useAuth();
+  const navigate = useNavigate();
   const loginMutation = useLogin();
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -18,7 +21,15 @@ export function LoginPage() {
       return;
     }
 
-    loginMutation.mutate({ email, password });
+    loginMutation.mutate(
+      { email, password },
+      {
+        onSuccess: (user) => {
+          setUser(user);
+          navigate(AppRoute.Home, { replace: true });
+        },
+      },
+    );
   }
 
   const errorMessage =
