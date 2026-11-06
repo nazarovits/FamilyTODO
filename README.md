@@ -38,15 +38,19 @@ so newly declared workspace dependencies are included automatically.
 
 ## Vercel Web Deployment
 
-Deploy `apps/web` as a separate Vercel project. Set the
-`VITE_API_BASE_URL` environment variable to the API deployment origin, for
-example `https://api.example.com` (origin only, without a path). Leave it
-unset for local development to use the Vite `/api` proxy. Keep the web
-project's build command as `pnpm run build`; the web build script builds its
-workspace dependencies before running TypeScript and Vite.
+Deploy `apps/web` as a separate Vercel project. Its `vercel.json` rewrites
+browser requests under `/api` to the API deployment, keeping API calls
+same-origin from the browser. This lets the session cookie use `SameSite=Lax`
+without a custom domain or third-party-cookie access. If the API deployment URL
+changes, update the rewrite destination in `apps/web/vercel.json`.
+
+Leave `VITE_API_BASE_URL` unset in the web project so the web app calls `/api`
+on its own origin. Keep the web project's build command as `pnpm run build`;
+the web build script builds its workspace dependencies before running
+TypeScript and Vite.
 
 Set the API project's `WEB_APP_URL` to the exact web origin, for example
-`https://app.example.com`; the API uses it to allow credentialed CORS requests.
-Because authentication uses an HttpOnly cookie with `SameSite=Lax`, use web and
-API custom domains under the same site (such as `app.example.com` and
-`api.example.com`) for browser session cookies.
+`https://family-todo-1td1.vercel.app`; it is used for password-reset links and
+the API's CORS allowlist. The browser accesses the API through the web
+project's rewrite, so the two `*.vercel.app` domains do not need to share a
+site.
