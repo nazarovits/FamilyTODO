@@ -9,6 +9,35 @@ export class ApiRequestError extends Error {
   }
 }
 
+function getApiBaseUrl(): string {
+  const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+  if (!configuredBaseUrl) {
+    return "";
+  }
+
+  let url: URL;
+  try {
+    url = new URL(configuredBaseUrl);
+  } catch {
+    throw new Error("VITE_API_BASE_URL must be an absolute HTTP(S) origin.");
+  }
+
+  if (
+    (url.protocol !== "https:" && url.protocol !== "http:") ||
+    url.username ||
+    url.password ||
+    url.pathname !== "/" ||
+    url.search ||
+    url.hash
+  ) {
+    throw new Error("VITE_API_BASE_URL must be an absolute HTTP(S) origin.");
+  }
+
+  return url.origin;
+}
+
+const apiBaseUrl = getApiBaseUrl();
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -17,7 +46,10 @@ async function requestJson(
   path: string,
   init: RequestInit,
 ): Promise<unknown> {
-  const response = await fetch(path, init);
+  const response = await fetch(`${apiBaseUrl}${path}`, {
+    ...init,
+    credentials: "include",
+  });
   const responseText = await response.text();
   let responseBody: unknown;
 

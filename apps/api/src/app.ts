@@ -6,10 +6,47 @@ import { apiRouter } from "./routes/api.js";
 export const app = express();
 export default app;
 
+const webAppUrl = process.env.WEB_APP_URL;
+let webAppOrigin: string | undefined;
+if (webAppUrl) {
+  try {
+    webAppOrigin = new URL(webAppUrl).origin;
+  } catch {
+    throw new Error("WEB_APP_URL must be a valid absolute URL for CORS.");
+  }
+}
+
 const moduleDirectory = dirname(fileURLToPath(import.meta.url));
 const publicDirectory = resolve(moduleDirectory, "../public");
 
 app.set("trust proxy", "loopback");
+app.use((request, response, next) => {
+  const origin = request.get("Origin");
+  const isAllowedOrigin = Boolean(origin && origin === webAppOrigin);
+
+  if (origin && isAllowedOrigin) {
+    response.vary("Origin");
+    response.setHeader("Access-Control-Allow-Origin", origin);
+    response.setHeader("Access-Control-Allow-Credentials", "true");
+  }
+
+  if (
+    request.method === "OPTIONS" &&
+    request.get("Access-Control-Request-Method")
+  ) {
+    if (!isAllowedOrigin) {
+      response.sendStatus(403);
+      return;
+    }
+
+    response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    response.sendStatus(204);
+    return;
+  }
+
+  next();
+});
 app.use(express.json({ limit: "16kb" }));
 app.use(express.static(resolve(moduleDirectory, "../public")));
 
