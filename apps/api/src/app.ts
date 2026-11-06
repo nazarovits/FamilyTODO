@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { apiRouter } from "./routes/api.js";
 
 export const app = express();
+export default app;
 
 app.set("trust proxy", "loopback");
 app.use(express.json({ limit: "16kb" }));
