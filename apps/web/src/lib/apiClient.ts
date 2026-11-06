@@ -49,8 +49,15 @@ async function requestJson(
   return responseBody;
 }
 
-export async function getJson(path: string): Promise<unknown> {
-  return requestJson(path, { method: "GET" });
+export async function getJson(
+  path: string,
+  init: RequestInit = {},
+): Promise<unknown> {
+  return requestJson(path, { ...init, method: "GET" });
+}
+
+export async function post(path: string): Promise<unknown> {
+  return requestJson(path, { method: "POST" });
 }
 
 export async function postJson(
