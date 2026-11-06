@@ -25,7 +25,7 @@ export function LoginPage() {
       { email, password },
       {
         onSuccess: (user) => {
-          setUser(user);
+          setUser(user.user);
           navigate(AppRoute.Home, { replace: true });
         },
       },

@@ -1,6 +1,5 @@
-import { postJson } from "../../lib/apiClient";
-import { ApiRequestError } from "../../lib/apiClient";
-import type { AuthenticatedUser } from "../../auth/AuthContext";
+import { isUserRole, type LoginResponseDto } from "@familytodo/shared-types";
+import { ApiRequestError, postJson } from "../../lib/apiClient";
 
 export interface LoginRequest {
   email: string;
@@ -13,10 +12,15 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 export async function login(
   credentials: LoginRequest,
-): Promise<AuthenticatedUser> {
+): Promise<LoginResponseDto> {
   const response = await postJson("/api/login", credentials);
 
-  if (!isRecord(response) || !isRecord(response.user)) {
+  if (
+    !isRecord(response) ||
+    !isRecord(response.user) ||
+    typeof response.expiresAt !== "string" ||
+    Number.isNaN(Date.parse(response.expiresAt))
+  ) {
     throw new ApiRequestError("The server returned an invalid response.", 200);
   }
 
@@ -26,23 +30,30 @@ export async function login(
   }
 
   if (profile === null) {
-    return { id, email, profile: null };
+    return {
+      user: { id, email, profile: null },
+      expiresAt: response.expiresAt,
+    };
   }
 
   if (
     !isRecord(profile) ||
     typeof profile.displayName !== "string" ||
-    typeof profile.role !== "string"
+    typeof profile.role !== "string" ||
+    !isUserRole(profile.role)
   ) {
     throw new ApiRequestError("The server returned an invalid response.", 200);
   }
 
   return {
-    id,
-    email,
-    profile: {
-      displayName: profile.displayName,
-      role: profile.role,
+    user: {
+      id,
+      email,
+      profile: {
+        displayName: profile.displayName,
+        role: profile.role,
+      },
     },
+    expiresAt: response.expiresAt,
   };
 }

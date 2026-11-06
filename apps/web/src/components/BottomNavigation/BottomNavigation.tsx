@@ -1,15 +1,16 @@
 import { NavLink } from "react-router-dom";
+import { UserRole } from "@familytodo/shared-types";
 import { AppRoute } from "../../routes/AppRoute";
 
 interface BottomNavigationProps {
-  role?: string;
+  role?: UserRole;
 }
 
 export function BottomNavigation({ role }: BottomNavigationProps) {
   const links = [
     { label: "Home", to: AppRoute.Home, end: true },
     { label: "Tasks", to: AppRoute.Tasks, end: false },
-    ...(role?.toUpperCase() === "PARENT"
+    ...(role === UserRole.Parent
       ? [{ label: "Activity", to: AppRoute.Activity, end: false }]
       : []),
     { label: "Profile", to: AppRoute.Profile, end: false },

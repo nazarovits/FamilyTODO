@@ -77,9 +77,9 @@ export async function postForgotPassword(
           recipientEmail: user.email,
           resetUrl,
         });
-      } catch (e) {
+      } catch {
         await invalidatePasswordResetToken(tokenHash);
-        console.error("Password reset email delivery failed.", e);
+        console.error("Password reset email delivery failed.");
       }
     }
 

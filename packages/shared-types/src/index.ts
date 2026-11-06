@@ -1,3 +1,30 @@
+export enum UserRole {
+  Parent = "PARENT",
+  Child = "CHILD",
+}
+
+export function isUserRole(value: string): value is UserRole {
+  return Object.values(UserRole).some((role) => role === value);
+}
+
+export interface AuthenticatedUserDto {
+  id: string;
+  email: string;
+  profile: {
+    displayName: string;
+    role: UserRole;
+  } | null;
+}
+
+export interface LoginResponseDto {
+  user: AuthenticatedUserDto;
+  expiresAt: string;
+}
+
+export type SessionResponseDto =
+  | { user: null }
+  | { user: AuthenticatedUserDto; expiresAt: string };
+
 export const PASSWORD_MIN_CODE_POINTS = 12;
 export const PASSWORD_MAX_CODE_POINTS = 128;
 

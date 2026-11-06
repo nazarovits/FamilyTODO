@@ -69,6 +69,9 @@ all existing emails to remain unique after trimming and lowercasing.
   keys.
 - `User.email` is unique and stored normalized (trimmed and lowercase).
 - `Role.code` is unique. Initial values are `PARENT` and `CHILD`.
+- The database stores `Role.code` as text. The API maps and validates it to
+  the shared TypeScript `UserRole` enum at the database-service boundary;
+  unknown persisted role values are treated as errors.
 - `Profile.userId` is both its primary key and a foreign key to `User.id`, so a
   user has at most one profile.
 - `Profile.roleId` references `Role.id`.

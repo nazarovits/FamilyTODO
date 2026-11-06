@@ -17,6 +17,10 @@ import {
 } from "../../services/database/auth.service.js";
 import { loginRequestSchema } from "../../schemas/auth.js";
 import { z } from "zod";
+import type {
+  LoginResponseDto,
+  SessionResponseDto,
+} from "@familytodo/shared-types";
 
 export async function postLogin(req: Request, res: Response): Promise<void> {
   const result = loginRequestSchema.safeParse(req.body);
@@ -65,26 +69,28 @@ export async function postLogin(req: Request, res: Response): Promise<void> {
   await createSession(user.id, hashSessionToken(token), expiresAt);
 
   setSessionCookie(res, token);
-  res.status(200).json({
+  const response: LoginResponseDto = {
     user: {
       id: user.id,
       email: user.email,
       profile: user.profile
         ? {
             displayName: user.profile.displayName,
-            role: user.profile.role.code,
+            role: user.profile.role,
           }
         : null,
     },
     expiresAt: expiresAt.toISOString(),
-  });
+  };
+  res.status(200).json(response);
 }
 
 export async function getSession(req: Request, res: Response): Promise<void> {
   const token = getSessionToken(req);
 
   if (!token) {
-    res.status(200).json({ user: null });
+    const response: SessionResponseDto = { user: null };
+    res.status(200).json(response);
     return;
   }
 
@@ -97,23 +103,25 @@ export async function getSession(req: Request, res: Response): Promise<void> {
     }
 
     clearSessionCookie(res);
-    res.status(200).json({ user: null });
+    const response: SessionResponseDto = { user: null };
+    res.status(200).json(response);
     return;
   }
 
-  res.status(200).json({
+  const response: SessionResponseDto = {
     user: {
       id: session.user.id,
       email: session.user.email,
       profile: session.user.profile
         ? {
             displayName: session.user.profile.displayName,
-            role: session.user.profile.role.code,
+            role: session.user.profile.role,
           }
         : null,
     },
     expiresAt: session.expiresAt.toISOString(),
-  });
+  };
+  res.status(200).json(response);
 }
 
 export async function postLogout(req: Request, res: Response): Promise<void> {

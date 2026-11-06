@@ -1,8 +1,24 @@
 import { Prisma } from "@prisma/client";
+import { isUserRole, type UserRole } from "@familytodo/shared-types";
 import { prisma } from "../../lib/prisma.js";
+import type {
+  LoginUserDto,
+  PasswordResetUserDto,
+  SessionDto,
+} from "./auth.dto.js";
 
-export async function findUserForLogin(email: string) {
-  return prisma.user.findUnique({
+function mapRole(code: string): UserRole {
+  if (!isUserRole(code)) {
+    throw new Error("The database contains an unsupported user role.");
+  }
+
+  return code;
+}
+
+export async function findUserForLogin(
+  email: string,
+): Promise<LoginUserDto | null> {
+  const user = await prisma.user.findUnique({
     where: { email },
     include: {
       profile: {
@@ -10,16 +26,36 @@ export async function findUserForLogin(email: string) {
       },
     },
   });
+
+  if (!user) {
+    return null;
+  }
+
+  return {
+    id: user.id,
+    email: user.email,
+    passwordHash: user.passwordHash,
+    profile: user.profile
+      ? {
+          displayName: user.profile.displayName,
+          role: mapRole(user.profile.role.code),
+        }
+      : null,
+  };
 }
 
-export async function findUserForPasswordReset(email: string) {
-  return prisma.user.findUnique({
+export async function findUserForPasswordReset(
+  email: string,
+): Promise<PasswordResetUserDto | null> {
+  const user = await prisma.user.findUnique({
     where: { email },
     select: {
       id: true,
       email: true,
     },
   });
+
+  return user;
 }
 
 export async function createSession(
@@ -32,8 +68,10 @@ export async function createSession(
   });
 }
 
-export async function findSessionByTokenHash(tokenHash: string) {
-  return prisma.session.findUnique({
+export async function findSessionByTokenHash(
+  tokenHash: string,
+): Promise<SessionDto | null> {
+  const session = await prisma.session.findUnique({
     where: { tokenHash },
     include: {
       user: {
@@ -45,6 +83,25 @@ export async function findSessionByTokenHash(tokenHash: string) {
       },
     },
   });
+
+  if (!session) {
+    return null;
+  }
+
+  return {
+    id: session.id,
+    expiresAt: session.expiresAt,
+    user: {
+      id: session.user.id,
+      email: session.user.email,
+      profile: session.user.profile
+        ? {
+            displayName: session.user.profile.displayName,
+            role: mapRole(session.user.profile.role.code),
+          }
+        : null,
+    },
+  };
 }
 
 export async function deleteSessionById(id: string): Promise<void> {
