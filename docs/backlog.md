@@ -94,6 +94,9 @@ Filter by:
 
 ### Task Creation
 
+See the [Task Creation vertical-slice plan](./feature/task-creation.md) for
+scope, acceptance criteria, and the implementation checklist.
+
 #### Parent
 
 - [ ] Create task

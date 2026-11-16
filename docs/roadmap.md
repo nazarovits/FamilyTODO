@@ -212,6 +212,9 @@ Provide the core task functionality.
 
 ## Feature: Create Task
 
+Follow the [Task Creation vertical-slice plan](./feature/task-creation.md) for
+scope, acceptance criteria, and progress tracking.
+
 ### UI
 
 - [ ] Create task screen
