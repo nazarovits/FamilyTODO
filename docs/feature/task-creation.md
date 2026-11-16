@@ -2,7 +2,8 @@
 
 ## Status
 
-Planning — implementation has not started.
+Task schema is defined in Prisma and its migration is generated but not applied.
+API and web implementation remain pending.
 
 ## Goal
 
@@ -19,13 +20,14 @@ separate slices.
 - [MVP backlog: Task Creation](../backlog.md#task-creation)
 - [MVP backlog: Task Details fields](../backlog.md#task-details)
 - [Roadmap: Create Task](../roadmap.md#feature-create-task)
-- [Database schema documentation](../db/schemas.md)
+- [Database schema and relationships](../db/schemas.md#tables-and-relationships)
 - [UI layout and styling rules](../ui/layout.md)
 - [Vertical-slice process](../vertical-slices.md)
 
 ## Current Starting Point
 
-- The Prisma schema has users and profiles, but no task model.
+- The Prisma schema and Task Creation migration have been prepared; the
+  migration has not yet been applied to a database.
 - The API has no task routes or task persistence logic.
 - The web Tasks page is currently a placeholder.
 - The current data model assumes one family installation and has no family or
@@ -64,17 +66,17 @@ below before implementation.
 
 | Field | Initial behavior |
 |---|---|
-| Title | Required and trimmed |
+| Title | Required, trimmed, maximum 120 characters |
 | Description | Optional |
-| Status | Set by the server to `OPEN` on creation |
-| Priority | Include in the form and persist; allowed values are a planning decision |
-| Reward points | Include in the form and persist; validate as a non-negative integer |
-| Estimate | Include in the form and persist; unit is a planning decision |
+| Status | Resolve the seeded `OPEN` row on the server at creation |
+| Priority | Include in the form and persist via `LOW`, `NORMAL`, or `HIGH`; default to `NORMAL` |
+| Reward points | Include in the form and persist; non-negative integer, default `0` |
+| Estimate | Optional positive integer in minutes |
 | Assignee | Required for this standard-task slice; selected from allowed users |
 | Creator | Derived from the authenticated session |
-| Due date | Optional |
-| Reminder date | Optional |
-| Approval required | Include in the form and persist; default is a planning decision |
+| Due date | Optional timestamp stored as a UTC instant |
+| Reminder date | Optional timestamp stored as a UTC instant |
+| Approval required | Include in the form and persist; default `false` |
 
 Do not add fields for later features unless a documented requirement depends on
 them.
@@ -100,7 +102,9 @@ them.
   allowed for the current user. This supports the parent/child rules in the
   creation form.
 - `POST /api/tasks` — authenticated; validates and creates a task, derives the
-  creator and initial status on the server, and returns the created task DTO.
+  creator and initial status on the server, resolves the submitted priority
+  code to its lookup row, and returns status/priority codes in the task DTO.
+  If no priority is supplied, use the seeded `NORMAL` row.
 
 Use the repository's existing response and error conventions. Add task DTOs to
 `@familytodo/shared-types` if they are shared by the API and web app. Never
@@ -131,25 +135,28 @@ changes, update this document before proceeding.
 
 ### 0. Confirm Product Rules
 
-- [ ] Choose the priority values and their default.
-- [ ] Choose the estimate unit and its allowed range.
-- [ ] Choose the default for reward points.
-- [ ] Choose the default for approval required.
-- [ ] Set maximum title and description lengths.
-- [ ] Define whether due and reminder inputs are dates or timestamps, including
-  the timezone handling.
-- [ ] Define whether a reminder may be later than the due date.
+- [x] Use `LOW`, `NORMAL`, and `HIGH` priority codes, with `NORMAL` as default.
+- [x] Store optional estimates as positive whole minutes; no maximum is set.
+- [x] Default reward points to `0` and require non-negative values.
+- [x] Default `requiresApproval` to `false`.
+- [x] Limit titles to 120 characters.
+- [ ] Choose a maximum description length for API/UI validation; the database
+  column is `TEXT`.
+- [x] Store due and reminder timestamps as `TIMESTAMPTZ(3)` UTC instants.
+- [x] Do not constrain reminder time relative to due time in this slice.
 
 ### 1. Database
 
-- [ ] Add the task status and priority enums (after confirming their values).
-- [ ] Add the Prisma Task model with creator and assignee relations to User.
-- [ ] Add required-field, range, date, and foreign-key constraints as
-  appropriate.
-- [ ] Add indexes for the expected assignee/status/due-date access patterns.
-- [ ] Create and review the Prisma migration against the configured development
-  database; do not reset existing data to resolve migration history issues.
-- [ ] Regenerate Prisma Client and update [schemas.md](../db/schemas.md).
+- [x] Approve the Task schema in [schemas.md](../db/schemas.md#tables-and-relationships).
+- [x] Add `TaskStatus` and `TaskPriority` lookup tables with unique codes and
+  seed the MVP values.
+- [x] Add the Prisma Task model with creator and assignee relations to User.
+- [x] Add required status and priority foreign keys to the lookup tables.
+- [x] Add nonblank-title, non-negative reward, and positive-estimate checks.
+- [x] Add indexes for assignee/status/due-date and creator lookups.
+- [x] Generate and review the migration SQL locally. It has not been applied to
+  any database.
+- [x] Regenerate Prisma Client and update [schemas.md](../db/schemas.md).
 
 ### 2. API
 

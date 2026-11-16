@@ -1,13 +1,15 @@
 # Database Schema
 
-This document describes the database foundation for the FamilyTODO login flow
-and a single-family installation. The canonical Prisma model is in
-[`../../apps/api/prisma/schema.prisma`](../../apps/api/prisma/schema.prisma).
+This document describes the database foundation for FamilyTODO authentication,
+task creation, and a single-family installation. The canonical Prisma model is
+in [`../../apps/api/prisma/schema.prisma`](../../apps/api/prisma/schema.prisma).
 The initial migration has been applied to Neon. The follow-up migration
 [`../../apps/api/prisma/migrations/20261104120000_allow_unset_passwords/migration.sql`](../../apps/api/prisma/migrations/20261104120000_allow_unset_passwords/migration.sql)
 has been generated locally but has not been applied. It normalizes existing
 emails and changes empty password hashes to `NULL`. Accounts without a set
-password have a `NULL` `passwordHash`.
+password have a `NULL` `passwordHash`. The Task Creation migration
+[`../../apps/api/prisma/migrations/20261116091000_add_task_creation_schema/migration.sql`](../../apps/api/prisma/migrations/20261116091000_add_task_creation_schema/migration.sql)
+has also been generated but has not been applied to the database.
 
 The API Prisma configuration loads `apps/api/.env.local` for local CLI commands.
 Prisma schema and migration commands use `DATABASE_URL_UNPOOLED`, while the
@@ -26,84 +28,192 @@ migration history before using `migrate dev` or `migrate deploy`; do not reset
 the database to resolve a drift warning. The email normalization step requires
 all existing emails to remain unique after trimming and lowercasing.
 
-## Tables
+## Tables and Relationships
 
-```text
-+----------------------------+       +----------------------------+
-| Role                       |       | User                       |
-+----------------------------+       +----------------------------+
-| PK  id          UUID       |       | PK  id          UUID       |
-| UQ  code        TEXT       |       | UQ  email       TEXT       |
-|     PARENT/CHILD           |       |     passwordHash TEXT NULL |
-+----------------------------+       |     createdAt   TIMESTAMP  |
-             |                       |     updatedAt   TIMESTAMP  |
-             |                       +----------------------------+
-             |                                   | 1
-             |                                   | 1
-             v                                   v
-+----------------------------+       +----------------------------+
-| Profile                    |       | Session                    |
-+----------------------------+       +----------------------------+
-| PK, FK userId UUID         |       | PK  id          UUID       |
-| FK  roleId     UUID        |       | FK  userId      UUID       |
-|     displayName TEXT       |       | UQ  tokenHash   CHAR(64)   |
-+----------------------------+       |     createdAt   TIMESTAMP  |
-                                      |     expiresAt   TIMESTAMP  |
-                                      +----------------------------+
+The diagram below uses one ER format for every table in the canonical Prisma
+schema. It represents the schema in code; the follow-up password-normalization
+and task-creation migrations are generated locally but have not been applied.
 
-+----------------------------+
-| PasswordResetToken         |
-+----------------------------+
-| PK  id          UUID       |
-| FK  userId      UUID       |
-| UQ  tokenHash   CHAR(64)   |
-|     createdAt   TIMESTAMP  |
-|     expiresAt   TIMESTAMP  |
-|     usedAt      TIMESTAMP  |
-+----------------------------+
+```mermaid
+erDiagram
+  ROLE {
+    uuid id PK
+    varchar code UK
+  }
+
+  USER {
+    uuid id PK
+    varchar email UK
+    varchar passwordHash "nullable"
+    timestamptz createdAt
+    timestamptz updatedAt
+  }
+
+  PROFILE {
+    uuid userId PK, FK
+    uuid roleId FK
+    varchar displayName
+  }
+
+  SESSION {
+    uuid id PK
+    uuid userId FK
+    char tokenHash UK
+    timestamptz createdAt
+    timestamptz expiresAt
+  }
+
+  PASSWORD_RESET_TOKEN {
+    uuid id PK
+    uuid userId FK
+    char tokenHash UK
+    timestamptz createdAt
+    timestamptz expiresAt
+    timestamptz usedAt "nullable"
+  }
+
+  TASK_STATUS {
+    uuid id PK
+    varchar code UK
+  }
+
+  TASK_PRIORITY {
+    uuid id PK
+    varchar code UK
+  }
+
+  TASK {
+    uuid id PK
+    varchar title
+    text description "nullable"
+    uuid statusId FK
+    uuid priorityId FK
+    int rewardPoints
+    int estimateMinutes "nullable"
+    boolean requiresApproval
+    uuid assigneeId FK
+    uuid createdById FK
+    timestamptz dueAt "nullable"
+    timestamptz reminderAt "nullable"
+    timestamptz createdAt
+    timestamptz updatedAt
+  }
+
+  ROLE ||--o{ PROFILE : role
+  USER ||--o| PROFILE : profile
+  USER ||--o{ SESSION : sessions
+  USER ||--o{ PASSWORD_RESET_TOKEN : reset_tokens
+  TASK_STATUS ||--o{ TASK : status
+  TASK_PRIORITY ||--o{ TASK : priority
+  USER ||--o{ TASK : assignee
+  USER ||--o{ TASK : creator
 ```
 
-## Keys and Constraints
+## Table Fields
 
-- `User.id`, `Role.id`, `Session.id`, and `PasswordResetToken.id` are primary
-  keys.
-- `User.email` is unique and stored normalized (trimmed and lowercase).
-- `Role.code` is unique. Initial values are `PARENT` and `CHILD`.
-- The database stores `Role.code` as text. The API maps and validates it to
-  the shared TypeScript `UserRole` enum at the database-service boundary;
-  unknown persisted role values are treated as errors.
-- `Profile.userId` is both its primary key and a foreign key to `User.id`, so a
-  user has at most one profile.
-- `Profile.roleId` references `Role.id`.
-- `Session.userId` references `User.id`; deleting a user cascades to sessions.
-- `Session.tokenHash` is unique. Only a hash of the opaque session token is
-  stored in the database.
-- `Session.expiresAt` must be later than `Session.createdAt`.
-- `PasswordResetToken.expiresAt` must be later than `createdAt`.
-- `PasswordResetToken.userId` references `User.id`; deleting a user cascades to
-  reset tokens.
-- `PasswordResetToken.tokenHash` is unique. Only a hash of the emailed reset
-  token is stored.
+### Role
+
+| Field | Database shape | Description |
+|---|---|---|
+| `id` | UUID primary key | Generated by Prisma |
+| `code` | Required `VARCHAR(32)`, unique | Stable role code; seeded with `PARENT` and `CHILD` |
+
+### User
+
+| Field | Database shape | Description |
+|---|---|---|
+| `id` | UUID primary key | Generated by Prisma |
+| `email` | Required `VARCHAR(254)`, unique | Stored trimmed and lowercased |
+| `passwordHash` | Nullable `VARCHAR(255)` | Null until the user sets a password; never stores plaintext |
+| `createdAt` | Required `TIMESTAMPTZ(3)`, default now | Creation timestamp |
+| `updatedAt` | Required `TIMESTAMPTZ(3)` | Maintained by Prisma |
+
+### Profile
+
+| Field | Database shape | Description |
+|---|---|---|
+| `userId` | UUID primary key and foreign key to `User.id` | Allows at most one profile per user; cascades when user is deleted |
+| `roleId` | Required UUID foreign key to `Role.id` | Role is restricted from deletion while referenced |
+| `displayName` | Required `VARCHAR(80)` | UI name such as “Mom,” “Dad,” or a child’s name |
+
+### Session
+
+| Field | Database shape | Description |
+|---|---|---|
+| `id` | UUID primary key | Generated by Prisma |
+| `userId` | Required UUID foreign key to `User.id` | Cascades when user is deleted |
+| `tokenHash` | Required `CHAR(64)`, unique | Stores only the hash of the opaque session token |
+| `createdAt` | Required `TIMESTAMPTZ(3)`, default now | Creation timestamp |
+| `expiresAt` | Required `TIMESTAMPTZ(3)` | Must be later than `createdAt` |
+
+### PasswordResetToken
+
+| Field | Database shape | Description |
+|---|---|---|
+| `id` | UUID primary key | Generated by Prisma |
+| `userId` | Required UUID foreign key to `User.id` | Cascades when user is deleted |
+| `tokenHash` | Required `CHAR(64)`, unique | Stores only the hash of the emailed reset token |
+| `createdAt` | Required `TIMESTAMPTZ(3)`, default now | Creation timestamp |
+| `expiresAt` | Required `TIMESTAMPTZ(3)` | Must be later than `createdAt` |
+| `usedAt` | Nullable `TIMESTAMPTZ(3)` | Null while unused; set when consumed |
+
+### TaskStatus
+
+| Field | Database shape | Description |
+|---|---|---|
+| `id` | UUID primary key | Seeded with stable IDs |
+| `code` | Required `VARCHAR(32)`, unique | Seeded codes: `OPEN`, `IN_PROGRESS`, `PENDING_APPROVAL`, `DONE`, `REJECTED` |
+
+### TaskPriority
+
+| Field | Database shape | Description |
+|---|---|---|
+| `id` | UUID primary key | Seeded with stable IDs |
+| `code` | Required `VARCHAR(32)`, unique | Seeded codes: `LOW`, `NORMAL`, `HIGH` |
+
+### Task
+
+| Field | Database shape | Description |
+|---|---|---|
+| `id` | UUID primary key | Generated by Prisma |
+| `title` | Required `VARCHAR(120)` | Must not be blank after trimming |
+| `description` | Nullable `TEXT` | Optional; API/UI maximum length is tracked in the feature plan |
+| `statusId` | Required UUID foreign key to `TaskStatus.id` | New tasks use the `OPEN` status |
+| `priorityId` | Required UUID foreign key to `TaskPriority.id` | New tasks default to `NORMAL` |
+| `rewardPoints` | Required integer, default `0` | Non-negative; storing a reward does not award points |
+| `estimateMinutes` | Nullable integer | Positive when present; unit is minutes |
+| `requiresApproval` | Required boolean, default `false` | Approval behavior is implemented in a later feature slice |
+| `assigneeId` | Required UUID foreign key to `User.id` | Required for standard tasks; task user deletion is restricted |
+| `createdById` | Required UUID foreign key to `User.id` | Derived from the authenticated session; deletion is restricted |
+| `dueAt` | Nullable `TIMESTAMPTZ(3)` | Stored as a UTC instant |
+| `reminderAt` | Nullable `TIMESTAMPTZ(3)` | Stored as a UTC instant; no ordering constraint with `dueAt` |
+| `createdAt` | Required `TIMESTAMPTZ(3)`, default now | Creation timestamp |
+| `updatedAt` | Required `TIMESTAMPTZ(3)` | Maintained by Prisma |
+
+## Relationships and Constraints
+
+- `Role.code`, `User.email`, `Session.tokenHash`, and
+  `PasswordResetToken.tokenHash` are unique.
+- The database stores `Role.code` as text. The API maps and validates it to the
+  shared TypeScript `UserRole`; unknown persisted role values are errors.
+- Session expiry and reset-token expiry must be later than their creation
+  timestamps. These SQL `CHECK` constraints are not represented in Prisma.
 - A reset token is valid only before `expiresAt` and while `usedAt` is null.
-  Redeeming it updates the password and marks the token used.
-- Passwords are stored as password hashes, never as plaintext.
-- `passwordHash` is null until a user sets their first password.
-- The expiry ordering rules are enforced by SQL `CHECK` constraints in the
-  migration; Prisma's schema does not currently represent these constraints.
-
-## Design Notes
-
-- This model assumes one family installation, so it does not include `Family`
-  or `FamilyMember` tables.
-- `displayName` holds the name shown in the UI, such as “Dad,” “Mom,” or a
-  child’s name. These are not authorization roles.
-- `ADMIN` is intentionally omitted until its permissions are defined. Parent
-  access is sufficient for managing this single-family app initially.
-- The initial migration inserts the `PARENT` and `CHILD` role rows with stable
-  IDs.
-- If the app later needs multiple households, add family and membership tables;
-  assign parent/child roles to memberships rather than treating them as global
-  roles.
-- Password reset tokens should be random, single-use, time-limited, and stored
-  only as hashes. Multiple outstanding requests can be invalidated when a new
-  token is issued, according to the eventual reset-flow policy.
+- Task status and priority codes are seeded in the task migration. API
+  responses should expose codes rather than database lookup IDs.
+- Task foreign keys to `User` use `RESTRICT`; task status and priority rows
+  cannot be deleted while referenced.
+- Task titles must be nonblank; `rewardPoints` must be non-negative; an
+  estimate, if present, must be positive. These SQL `CHECK` constraints are
+  not represented in Prisma.
+- Task indexes support `(assigneeId, statusId, dueAt)` task views and
+  `(createdById)` creator lookups.
+- Task assignment eligibility is enforced by the API: parents may assign to
+  any user in this single-family installation; children may assign to
+  themselves or a parent, but not another child.
+- The schema assumes one family installation, so it does not include
+  `Family` or `FamilyMember` tables. Add family-scoped membership only if
+  multi-household support becomes an MVP requirement.
+- `ADMIN` is omitted until its permissions are defined.
+- Password reset tokens are random, single-use, time-limited, and stored only
+  as hashes. A new reset request may invalidate prior outstanding tokens.
