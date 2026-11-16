@@ -42,7 +42,9 @@ Deploy `apps/web` as a separate Vercel project. Its `vercel.json` rewrites
 browser requests under `/api` to the API deployment, keeping API calls
 same-origin from the browser. This lets the session cookie use `SameSite=Lax`
 without a custom domain or third-party-cookie access. If the API deployment URL
-changes, update the rewrite destination in `apps/web/vercel.json`.
+changes, update the rewrite destination in `apps/web/vercel.json`. A final
+rewrite sends other paths to the SPA entry point so React Router routes such as
+`/reset-password` work when opened directly or refreshed.
 
 Leave `VITE_API_BASE_URL` unset in the web project so the web app calls `/api`
 on its own origin. Keep the web project's build command as `pnpm run build`;
