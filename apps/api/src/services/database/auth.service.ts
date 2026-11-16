@@ -1,19 +1,11 @@
 import { Prisma } from "@prisma/client";
-import { isUserRole, type UserRole } from "@familytodo/shared-types";
 import { prisma } from "../../lib/prisma.js";
+import { mapUserRole } from "./role-mapping.js";
 import type {
   LoginUserDto,
   PasswordResetUserDto,
   SessionDto,
 } from "./auth.dto.js";
-
-function mapRole(code: string): UserRole {
-  if (!isUserRole(code)) {
-    throw new Error("The database contains an unsupported user role.");
-  }
-
-  return code;
-}
 
 export async function findUserForLogin(
   email: string,
@@ -38,7 +30,7 @@ export async function findUserForLogin(
     profile: user.profile
       ? {
           displayName: user.profile.displayName,
-          role: mapRole(user.profile.role.code),
+          role: mapUserRole(user.profile.role.code),
         }
       : null,
   };
@@ -97,7 +89,7 @@ export async function findSessionByTokenHash(
       profile: session.user.profile
         ? {
             displayName: session.user.profile.displayName,
-            role: mapRole(session.user.profile.role.code),
+            role: mapUserRole(session.user.profile.role.code),
           }
         : null,
     },

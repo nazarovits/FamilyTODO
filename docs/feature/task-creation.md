@@ -2,8 +2,9 @@
 
 ## Status
 
-Task schema is defined in Prisma and its migration is generated but not applied.
-API and web implementation remain pending.
+Task schema is defined in Prisma and applied to Neon. The API endpoints are
+implemented; web implementation and database-backed persistence tests remain
+pending.
 
 ## Goal
 
@@ -21,20 +22,21 @@ separate slices.
 - [MVP backlog: Task Details fields](../backlog.md#task-details)
 - [Roadmap: Create Task](../roadmap.md#feature-create-task)
 - [Database schema and relationships](../db/schemas.md#tables-and-relationships)
+- [API reference](../api.md)
 - [UI layout and styling rules](../ui/layout.md)
 - [Vertical-slice process](../vertical-slices.md)
+- [API follow-up issues](../issues/technical-debt.md)
 
 ## Current Starting Point
 
-- The Prisma schema and Task Creation migration have been prepared; the
-  migration has not yet been applied to a database.
-- The API has no task routes or task persistence logic.
+- The Prisma schema and Task Creation migration have been applied to Neon.
+- The API exposes authenticated assignee lookup and task creation routes.
 - The web Tasks page is currently a placeholder.
 - The current data model assumes one family installation and has no family or
   membership table. Assignment rules therefore apply to the users in this
   single-family installation; do not imply multi-family isolation.
-- The API has no automated test suite yet. Add focused tests for the behavior
-  introduced by this slice using the test setup chosen for the API.
+- API unit and unauthenticated-route tests are in place; a database-backed
+  persistence test remains open.
 
 ## Scope
 
@@ -96,7 +98,7 @@ them.
 - Saving a reward value does not award points; point transactions belong to a
   later slice.
 
-## API Shape To Implement
+## API Contract
 
 - `GET /api/tasks/assignees` — authenticated; returns only the assignee choices
   allowed for the current user. This supports the parent/child rules in the
@@ -106,9 +108,13 @@ them.
   code to its lookup row, and returns status/priority codes in the task DTO.
   If no priority is supplied, use the seeded `NORMAL` row.
 
-Use the repository's existing response and error conventions. Add task DTOs to
-`@familytodo/shared-types` if they are shared by the API and web app. Never
-return Prisma records directly from the API.
+The current response envelopes, request fields, and error codes are documented
+in the [API reference](../api.md). Shared task types and DTOs are defined in
+`@familytodo/shared-types`; handlers map Prisma records to those public DTOs.
+Assignment authorization currently lives in the database service, while the
+task route and handlers also perform access checks. The deferred middleware
+refactor and broader API tests are tracked as TD-003 and TD-004 in
+[technical debt](../issues/technical-debt.md).
 
 ## Acceptance Criteria
 
@@ -154,21 +160,21 @@ changes, update this document before proceeding.
 - [x] Add required status and priority foreign keys to the lookup tables.
 - [x] Add nonblank-title, non-negative reward, and positive-estimate checks.
 - [x] Add indexes for assignee/status/due-date and creator lookups.
-- [x] Generate and review the migration SQL locally. It has not been applied to
-  any database.
+- [x] Generate, review, and apply the migration to Neon.
 - [x] Regenerate Prisma Client and update [schemas.md](../db/schemas.md).
 
 ### 2. API
 
-- [ ] Define shared request/response DTOs and request validation.
-- [ ] Implement authenticated assignee choices with role filtering.
-- [ ] Implement authenticated `POST /api/tasks` and derive creator/status from
+- [x] Define shared request/response DTOs and request validation.
+- [x] Implement authenticated assignee choices with role filtering.
+- [x] Implement authenticated `POST /api/tasks` and derive creator/status from
   trusted server state.
-- [ ] Enforce assignee eligibility in the database/service boundary.
-- [ ] Map database results to the public task DTO and follow existing API error
+- [x] Enforce assignee eligibility in the database/service boundary.
+- [x] Map database results to the public task DTO and follow existing API error
   conventions.
-- [ ] Add focused API/service tests for success, validation, authorization,
-  unauthenticated access, and persistence.
+- [x] Add focused tests for assignment rules, request validation, and
+  unauthenticated endpoint access.
+- [ ] Add a database-backed test for successful task persistence.
 
 ### 3. Web
 

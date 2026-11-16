@@ -94,6 +94,12 @@ function bundle so the welcome page and public assets are available at runtime.
 The API build script uses pnpm's workspace dependency selector to build its
 workspace dependencies before compiling the API.
 
+See the [API reference](./api.md) for the endpoint catalog and task API
+contract. API routes, handlers, middleware, schemas, and services are organized
+under `apps/api/src`; task endpoints use the existing route-handler-database
+service pattern. Run API tests with
+`pnpm --filter @familytodo/api test`.
+
 ---
 
 # Shared Packages
@@ -109,6 +115,7 @@ Examples:
 - UserRole
 - TaskStatus
 - TaskPriority
+- Task and TaskAssignee DTOs
 - DTO definitions
 
 Location:

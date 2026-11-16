@@ -3,13 +3,13 @@
 This document describes the database foundation for FamilyTODO authentication,
 task creation, and a single-family installation. The canonical Prisma model is
 in [`../../apps/api/prisma/schema.prisma`](../../apps/api/prisma/schema.prisma).
-The initial migration has been applied to Neon. The follow-up migration
+The initial migration and the follow-up migration
 [`../../apps/api/prisma/migrations/20261104120000_allow_unset_passwords/migration.sql`](../../apps/api/prisma/migrations/20261104120000_allow_unset_passwords/migration.sql)
-has been generated locally but has not been applied. It normalizes existing
-emails and changes empty password hashes to `NULL`. Accounts without a set
-password have a `NULL` `passwordHash`. The Task Creation migration
+have been applied to Neon. It normalizes existing emails and changes empty
+password hashes to `NULL`. Accounts without a set password have a `NULL`
+`passwordHash`. The Task Creation migration
 [`../../apps/api/prisma/migrations/20261116091000_add_task_creation_schema/migration.sql`](../../apps/api/prisma/migrations/20261116091000_add_task_creation_schema/migration.sql)
-has also been generated but has not been applied to the database.
+has also been applied to Neon.
 
 The API Prisma configuration loads `apps/api/.env.local` for local CLI commands.
 Prisma schema and migration commands use `DATABASE_URL_UNPOOLED`, while the
@@ -22,17 +22,17 @@ pnpm --filter @familytodo/api db:migrate:dev
 
 `db:migrate:dev` applies schema changes to the configured development database.
 Verify that `.env.local` points to the intended Neon development database
-before running it. The follow-up migration has not been applied. If the initial
-SQL was run manually in Neon rather than with Prisma Migrate, verify Prisma
-migration history before using `migrate dev` or `migrate deploy`; do not reset
-the database to resolve a drift warning. The email normalization step requires
-all existing emails to remain unique after trimming and lowercasing.
+before running it. If the initial SQL was run manually in Neon rather than with
+Prisma Migrate, verify Prisma migration history before using `migrate dev` or
+`migrate deploy`; do not reset the database to resolve a drift warning. The
+email normalization step requires all existing emails to remain unique after
+trimming and lowercasing.
 
 ## Tables and Relationships
 
 The diagram below uses one ER format for every table in the canonical Prisma
-schema. It represents the schema in code; the follow-up password-normalization
-and task-creation migrations are generated locally but have not been applied.
+schema. It represents the schema in code and matches the migrations applied to
+Neon.
 
 ```mermaid
 erDiagram

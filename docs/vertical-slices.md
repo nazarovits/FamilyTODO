@@ -45,10 +45,14 @@ For every feature slice, we should include all of the following:
 
 ### 2. API Layer
 
-- Route(s) for the feature
-- Request validation
-- Response schema
-- Auth/session handling where needed
+- Mount route(s) under the API router and apply authentication/role middleware.
+- Validate requests with the feature schema and document request/response
+  shapes.
+- Keep HTTP mapping in handlers and database access in services; return shared
+  DTOs rather than Prisma records.
+- Put access checks in middleware so handlers can focus on the endpoint flow.
+  Track and test any existing exceptions in the
+  [API reference](./api.md) and [technical-debt issues](./issues/technical-debt.md).
 
 ### 3. Database
 
@@ -66,7 +70,10 @@ For every feature slice, we should include all of the following:
 ### 5. Quality Bar
 
 - Unit tests for business logic
-- Integration tests for API flows
+- API application tests should exercise the real Express routes and guard
+  middleware against an isolated test database; avoid extensive mocking.
+- High-level handler and shared-package tests should verify guard behavior and
+  public request/response contracts.
 - Basic UI tests for critical path
 
 ---

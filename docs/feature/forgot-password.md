@@ -25,7 +25,10 @@ implemented; the UI, API handlers, and token behavior are not implemented yet.
 - Keep authentication-related Prisma access in the shared auth database
   service; handlers orchestrate the application flow and HTTP behavior.
 
-## API File Structure
+## Files Used by This Flow
+
+The API endpoint catalog and shared route/handler/service conventions are
+documented in the [API reference](../api.md). This flow uses:
 
 ```text
 apps/api/src/
