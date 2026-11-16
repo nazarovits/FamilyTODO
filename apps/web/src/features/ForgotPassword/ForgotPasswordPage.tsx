@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ApiRequestError } from "../../lib/apiClient";
 import { AppRoute } from "../../routes/AppRoute";
+import styles from "../../styles/AuthPage.module.css";
 import { useForgotPassword } from "./useForgotPassword";
 
 export function ForgotPasswordPage() {
@@ -38,31 +39,31 @@ export function ForgotPasswordPage() {
         : null;
 
   return (
-    <main className="auth-page">
-      <section className="auth-panel" aria-labelledby="forgot-password-title">
-        <h1 className="auth-brand">FamilyTODO</h1>
-        <h2 className="auth-title" id="forgot-password-title">
+    <main className={styles.page}>
+      <section className={styles.panel} aria-labelledby="forgot-password-title">
+        <h1 className={styles.brand}>FamilyTODO</h1>
+        <h2 className={styles.title} id="forgot-password-title">
           Forgot your password?
         </h2>
         {submitted ? (
           <>
-            <p className="auth-success" role="status">
+            <p className={styles.success} role="status">
               If an account matches that email address, we&apos;ll send
               instructions to reset its password. Check your inbox and spam
               folder.
             </p>
-            <Link className="auth-back-link" to={AppRoute.Login}>
+            <Link className={styles.backLink} to={AppRoute.Login}>
               Back to login
             </Link>
           </>
         ) : (
           <>
-            <p className="auth-description">
+            <p className={styles.description}>
               Enter the email address associated with your account and we&apos;ll
               send password reset instructions if an account matches.
             </p>
-            <form className="auth-form" onSubmit={handleSubmit}>
-              <div className="auth-field">
+            <form className={styles.form} onSubmit={handleSubmit}>
+              <div className={styles.field}>
                 <label htmlFor="forgot-email">Email</label>
                 <input
                   autoComplete="email"
@@ -74,19 +75,19 @@ export function ForgotPasswordPage() {
                 />
               </div>
               {errorMessage && (
-                <p className="auth-error" role="alert">
+                <p className={styles.error} role="alert">
                   {errorMessage}
                 </p>
               )}
               <button
-                className="auth-submit"
+                className={styles.submit}
                 disabled={resetMutation.isPending}
                 type="submit"
               >
                 {resetMutation.isPending ? "Sending..." : "Send reset link"}
               </button>
             </form>
-            <Link className="auth-back-link" to={AppRoute.Login}>
+            <Link className={styles.backLink} to={AppRoute.Login}>
               Back to login
             </Link>
           </>

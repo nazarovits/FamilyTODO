@@ -5,6 +5,7 @@ import { useAuth } from "../../auth/AuthContext";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { post } from "../../lib/apiClient";
 import { AppRoute } from "../../routes/AppRoute";
+import styles from "./ProfilePage.module.css";
 
 const sampleProfile = {
   displayName: "Alex Morgan",
@@ -60,22 +61,22 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="profile-page">
-      <h1 className="profile-page-title">Profile</h1>
+    <div className={styles.page}>
+      <h1 className={styles.pageTitle}>Profile</h1>
 
-      <section className="profile-header" aria-label="Your profile">
-        <div aria-hidden="true" className="profile-avatar">
+      <section className={styles.header} aria-label="Your profile">
+        <div aria-hidden="true" className={styles.avatar}>
           {initials}
         </div>
-        <div className="profile-identity">
-          <h2 className="profile-name">{displayName}</h2>
-          <p className="profile-email">{email}</p>
-          <span className="profile-role">
+        <div className={styles.identity}>
+          <h2 className={styles.name}>{displayName}</h2>
+          <p className={styles.email}>{email}</p>
+          <span className={styles.role}>
             {role === UserRole.Parent ? "Parent" : "Child"}
           </span>
         </div>
         <button
-          className="profile-logout"
+          className={styles.logout}
           onClick={() => {
             setLogoutError(null);
             setIsConfirmOpen(true);
@@ -86,30 +87,30 @@ export function ProfilePage() {
         </button>
       </section>
 
-      <div className="profile-details">
-        <section className="profile-card" aria-labelledby="profile-points-title">
-          <h2 className="profile-section-title" id="profile-points-title">
+      <div className={styles.details}>
+        <section className={styles.card} aria-labelledby="profile-points-title">
+          <h2 className={styles.sectionTitle} id="profile-points-title">
             Current points
           </h2>
-          <p className="profile-points-value">125 points</p>
+          <p className={styles.pointsValue}>125 points</p>
         </section>
 
         <section
-          className="profile-card profile-history"
+          className={styles.card}
           aria-labelledby="profile-history-title"
         >
-          <h2 className="profile-section-title" id="profile-history-title">
+          <h2 className={styles.sectionTitle} id="profile-history-title">
             Points history
           </h2>
-          <ul className="profile-history-list">
+          <ul className={styles.historyList}>
             {samplePointsHistory.map(({ description, points }) => (
-              <li className="profile-history-item" key={description}>
+              <li className={styles.historyItem} key={description}>
                 <span
-                  className={
+                  className={`${styles.historyPoints} ${
                     points > 0
-                      ? "profile-history-points profile-history-points--positive"
-                      : "profile-history-points profile-history-points--negative"
-                  }
+                      ? styles.historyPointsPositive
+                      : styles.historyPointsNegative
+                  }`}
                 >
                   {points > 0 ? "+" : ""}
                   {points}

@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef } from "react";
+import styles from "./ConfirmDialog.module.css";
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -44,7 +45,7 @@ export function ConfirmDialog({
     <dialog
       aria-labelledby={titleId}
       aria-describedby={messageId}
-      className="confirm-dialog"
+      className={styles.dialog}
       onCancel={(event) => {
         event.preventDefault();
         if (!isBusy) {
@@ -55,28 +56,28 @@ export function ConfirmDialog({
     >
       <button
         aria-label="Close confirmation"
-        className="confirm-dialog-close"
+        className={styles.close}
         disabled={isBusy}
         onClick={onNoPressed}
         type="button"
       >
         <span aria-hidden="true">&times;</span>
       </button>
-      <div className="confirm-dialog-content">
-        <h2 className="confirm-dialog-title" id={titleId}>
+      <div className={styles.content}>
+        <h2 className={styles.title} id={titleId}>
           {title}
         </h2>
-        <p className="confirm-dialog-message" id={messageId}>
+        <p className={styles.message} id={messageId}>
           {message}
         </p>
         {errorMessage && (
-          <p className="confirm-dialog-error" role="alert">
+          <p className={styles.error} role="alert">
             {errorMessage}
           </p>
         )}
-        <div className="confirm-dialog-actions">
+        <div className={styles.actions}>
           <button
-            className="confirm-dialog-button confirm-dialog-button--secondary"
+            className={`${styles.button} ${styles.secondaryButton}`}
             disabled={isBusy}
             onClick={onNoPressed}
             type="button"
@@ -84,7 +85,7 @@ export function ConfirmDialog({
             {noText}
           </button>
           <button
-            className="confirm-dialog-button confirm-dialog-button--primary"
+            className={`${styles.button} ${styles.primaryButton}`}
             disabled={isBusy}
             onClick={onYesPressed}
             type="button"

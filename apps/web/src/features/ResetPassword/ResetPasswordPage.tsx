@@ -8,6 +8,7 @@ import {
 } from "@familytodo/shared-types";
 import { ApiRequestError } from "../../lib/apiClient";
 import { AppRoute } from "../../routes/AppRoute";
+import styles from "../../styles/AuthPage.module.css";
 import { useResetPassword } from "./useResetPassword";
 
 export function resetPasswordLoader(): { token: string | null } {
@@ -85,40 +86,40 @@ export function ResetPasswordPage() {
         : null;
 
   return (
-    <main className="auth-page">
-      <section className="auth-panel" aria-labelledby="reset-password-title">
-        <h1 className="auth-brand">FamilyTODO</h1>
-        <h2 className="auth-title" id="reset-password-title">
+    <main className={styles.page}>
+      <section className={styles.panel} aria-labelledby="reset-password-title">
+        <h1 className={styles.brand}>FamilyTODO</h1>
+        <h2 className={styles.title} id="reset-password-title">
           Reset your password
         </h2>
         {!token ? (
           <>
-            <p className="auth-error" role="alert">
+            <p className={styles.error} role="alert">
               This password reset link is invalid or has expired. Request a new
               link to continue.
             </p>
-            <Link className="auth-back-link" to={AppRoute.ForgotPassword}>
+            <Link className={styles.backLink} to={AppRoute.ForgotPassword}>
               Request a new reset link
             </Link>
           </>
         ) : resetMutation.isSuccess ? (
           <>
-            <p className="auth-success" role="status">
+            <p className={styles.success} role="status">
               Your password has been changed. Sign in with your new password.
             </p>
-            <Link className="auth-back-link" to={AppRoute.Login}>
+            <Link className={styles.backLink} to={AppRoute.Login}>
               Go to login
             </Link>
           </>
         ) : (
           <>
-            <p className="auth-description">
+            <p className={styles.description}>
               Choose a new password. Use {PASSWORD_MIN_CODE_POINTS}–
               {PASSWORD_MAX_CODE_POINTS} characters with no spaces or other
               whitespace.
             </p>
-            <form className="auth-form" onSubmit={handleSubmit}>
-              <div className="auth-field">
+            <form className={styles.form} onSubmit={handleSubmit}>
+              <div className={styles.field}>
                 <label htmlFor="new-password">New password</label>
                 <input
                   autoComplete="new-password"
@@ -129,7 +130,7 @@ export function ResetPasswordPage() {
                   type="password"
                 />
               </div>
-              <div className="auth-field">
+              <div className={styles.field}>
                 <label htmlFor="confirm-password">Confirm new password</label>
                 <input
                   autoComplete="new-password"
@@ -139,17 +140,17 @@ export function ResetPasswordPage() {
                   required
                   type="password"
                 />
-                <p className="auth-field-hint" id="password-hint">
+                <p className={styles.fieldHint} id="password-hint">
                   Unicode characters are allowed. Passwords must match.
                 </p>
               </div>
               {errorMessage && (
-                <p className="auth-error" role="alert">
+                <p className={styles.error} role="alert">
                   {errorMessage}
                 </p>
               )}
               <button
-                className="auth-submit"
+                className={styles.submit}
                 disabled={resetMutation.isPending}
                 type="submit"
               >

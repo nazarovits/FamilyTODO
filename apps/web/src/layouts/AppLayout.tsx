@@ -1,6 +1,7 @@
 import { Outlet, useMatches } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { BottomNavigation } from "../components/BottomNavigation/BottomNavigation";
+import styles from "./AppLayout.module.css";
 
 export function AppLayout() {
   const { user } = useAuth();
@@ -16,9 +17,9 @@ export function AppLayout() {
 
   return (
     <div
-      className={`app-layout${showBottomNavigation ? " app-layout--with-nav" : ""}`}
+      className={`${styles.layout}${showBottomNavigation ? ` ${styles.withBottomNavigation}` : ""}`}
     >
-      <main className="app-content">
+      <main className={styles.content}>
         <Outlet />
       </main>
       {showBottomNavigation && <BottomNavigation role={user.profile?.role} />}

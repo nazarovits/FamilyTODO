@@ -37,6 +37,8 @@ For every feature slice, we should include all of the following:
 ### 1. User Experience
 
 - Screen(s) for the flow
+- Component styles in colocated CSS Modules, following [UI layout and styling
+  guidance](./ui/layout.md)
 - Validation and feedback states
 - Empty/loading/error states
 - Success path and failure path
@@ -256,6 +258,8 @@ A completed vertical slice should have:
 
 - a working user flow from start to finish
 - an implemented UI
+- UI styles organized in CSS Modules according to [the layout and styling
+  guidance](./ui/layout.md)
 - backend API support
 - database migration or schema change
 - working business rules and validation

@@ -1,0 +1,32 @@
+.error {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+}
+
+.error p {
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.retry {
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--color-text);
+  color: var(--color-surface);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+
+.retry:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.retry:hover {
+  background: var(--color-text-secondary);
+}

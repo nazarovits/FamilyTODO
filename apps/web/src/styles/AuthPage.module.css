@@ -1,0 +1,169 @@
+.page,
+.loginPage {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 32px 16px;
+}
+
+.panel,
+.loginPanel {
+  width: min(100%, 400px);
+}
+
+.loginBrand {
+  margin: 0 0 40px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.loginTitle {
+  margin: 0 0 32px;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.loginForm,
+.form {
+  display: grid;
+  gap: 24px;
+}
+
+.loginField,
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.loginField label,
+.field label {
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.loginPasswordLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.loginPasswordLabel a,
+.backLink {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  text-underline-offset: 3px;
+}
+
+.loginField input,
+.field input {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: inherit;
+  font: inherit;
+}
+
+.loginField input:focus-visible,
+.loginPasswordLabel a:focus-visible,
+.loginSubmit:focus-visible,
+.field input:focus-visible,
+.submit:focus-visible,
+.backLink:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.loginSubmit,
+.submit {
+  min-height: 48px;
+  margin-top: 8px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--color-text);
+  color: var(--color-surface);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+
+.loginSubmit:hover,
+.submit:hover {
+  background: var(--color-text-secondary);
+}
+
+.loginSubmit:disabled,
+.submit:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.loginError,
+.error {
+  margin: -8px 0 0;
+  color: var(--color-danger);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.panel {
+  display: grid;
+  gap: 24px;
+}
+
+.brand,
+.title,
+.description {
+  margin: 0;
+}
+
+.brand {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.description,
+.success {
+  color: var(--color-text-muted);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.fieldHint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.submit {
+  margin-top: 8px;
+}
+
+.success {
+  margin: 0;
+  color: var(--color-success);
+}
+
+.backLink {
+  justify-self: start;
+}
+
+@media (min-width: 768px) {
+  .page,
+  .loginPage {
+    padding: 48px 24px;
+  }
+}

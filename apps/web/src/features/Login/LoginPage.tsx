@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { ApiRequestError } from "../../lib/apiClient";
 import { AppRoute } from "../../routes/AppRoute";
+import styles from "../../styles/AuthPage.module.css";
 import { useLogin } from "./useLogin";
 
 export function LoginPage() {
@@ -40,15 +41,15 @@ export function LoginPage() {
         : null;
 
   return (
-    <main className="login-page">
-      <section className="login-panel" aria-labelledby="login-title">
-        <h1 className="login-brand">FamilyTODO</h1>
-        <h2 className="login-title" id="login-title">
+    <main className={styles.loginPage}>
+      <section className={styles.loginPanel} aria-labelledby="login-title">
+        <h1 className={styles.loginBrand}>FamilyTODO</h1>
+        <h2 className={styles.loginTitle} id="login-title">
           Sign in to your family
         </h2>
 
-        <form className="login-form" onSubmit={handleSubmit}>
-          <div className="login-field">
+        <form className={styles.loginForm} onSubmit={handleSubmit}>
+          <div className={styles.loginField}>
             <label htmlFor="email">Email</label>
             <input
               autoComplete="email"
@@ -60,8 +61,8 @@ export function LoginPage() {
             />
           </div>
 
-          <div className="login-field">
-            <div className="login-password-label">
+          <div className={styles.loginField}>
+            <div className={styles.loginPasswordLabel}>
               <label htmlFor="password">Password</label>
               <Link to={AppRoute.ForgotPassword}>Forgot password?</Link>
             </div>
@@ -76,13 +77,13 @@ export function LoginPage() {
           </div>
 
           {errorMessage && (
-            <p className="login-error" role="alert">
+            <p className={styles.loginError} role="alert">
               {errorMessage}
             </p>
           )}
 
           <button
-            className="login-submit"
+            className={styles.loginSubmit}
             disabled={loginMutation.isPending}
             type="submit"
           >

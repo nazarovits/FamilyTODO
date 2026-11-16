@@ -5,6 +5,7 @@ import { useAuth } from "../../auth/AuthContext";
 import { ApiRequestError } from "../../lib/apiClient";
 import { AppRoute } from "../../routes/AppRoute";
 import { PageLoader } from "../PageLoader";
+import styles from "./QueryStateWrapper.module.css";
 
 interface QueryStateWrapperProps<TData> {
   query: UseQueryResult<TData, Error>;
@@ -42,13 +43,13 @@ export function QueryStateWrapper<TData>({
   return (
     <>
       <PageLoader isVisible={isFetching} message={loadingMessage} />
-      <section aria-busy={isFetching} className="page-state">
+      <section aria-busy={isFetching}>
         {data !== undefined && children(data)}
         {hasRecoverableError && (
-          <div className="page-state-error" role="alert">
+          <div className={styles.error} role="alert">
             <p>We couldn&apos;t load this page. Please try again.</p>
             <button
-              className="page-state-retry"
+              className={styles.retry}
               onClick={() => void refetch()}
               type="button"
             >

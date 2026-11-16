@@ -1,0 +1,12 @@
+.layout {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.content {
+  padding: 24px 16px;
+}
+
+.withBottomNavigation .content {
+  padding-bottom: calc(80px + env(safe-area-inset-bottom));
+}

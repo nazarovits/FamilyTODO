@@ -1,3 +1,5 @@
+import styles from "./PageLoader.module.css";
+
 interface PageLoaderProps {
   isVisible: boolean;
   message?: string;
@@ -11,11 +13,11 @@ export function PageLoader({
     <div
       aria-hidden={!isVisible}
       aria-label={message}
-      className={`page-loader${isVisible ? " page-loader--visible" : ""}`}
+      className={`${styles.loader}${isVisible ? ` ${styles.visible}` : ""}`}
       role="status"
     >
-      <span className="page-loader-spinner" />
-      <span className="page-loader-message">{message}</span>
+      <span className={styles.spinner} />
+      <span className={styles.message}>{message}</span>
     </div>
   );
 }

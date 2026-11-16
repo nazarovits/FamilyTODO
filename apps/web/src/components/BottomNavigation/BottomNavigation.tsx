@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { UserRole } from "@familytodo/shared-types";
 import { AppRoute } from "../../routes/AppRoute";
+import styles from "./BottomNavigation.module.css";
 
 interface BottomNavigationProps {
   role?: UserRole;
@@ -17,11 +18,11 @@ export function BottomNavigation({ role }: BottomNavigationProps) {
   ];
 
   return (
-    <nav className="bottom-navigation" aria-label="Main navigation">
+    <nav className={styles.navigation} aria-label="Main navigation">
       {links.map(({ label, to, end }) => (
         <NavLink
           className={({ isActive }) =>
-            `bottom-navigation-link${isActive ? " bottom-navigation-link--active" : ""}`
+            isActive ? `${styles.link} ${styles.linkActive}` : styles.link
           }
           end={end}
           key={to}
