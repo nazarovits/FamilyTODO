@@ -1,0 +1,66 @@
+.page {
+  display: grid;
+  width: min(100%, 1200px);
+  gap: 24px;
+  margin: 0 auto;
+}
+
+.header {
+  display: grid;
+  gap: 20px;
+  align-items: center;
+}
+
+.heading {
+  display: grid;
+  gap: 8px;
+}
+
+.title,
+.description {
+  margin: 0;
+}
+
+.title {
+  font-size: 1.5rem;
+  line-height: 1.3;
+}
+
+.description {
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.createButton {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 6px;
+  background: var(--color-text);
+  color: var(--color-surface);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.createButton:hover {
+  background: var(--color-text-secondary);
+}
+
+.createButton:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.createButton span {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+@media (min-width: 768px) {
+  .header {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}

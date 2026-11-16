@@ -4,6 +4,7 @@ import { createBrowserRouter } from "react-router-dom";
 import { AppLayout } from "../layouts/AppLayout";
 import HomePage from "../features/Home";
 import TasksPage from "../features/Tasks";
+import { CreateTaskPage } from "../features/Tasks/CreateTaskPage";
 import ActivityPage from "../features/Activity";
 import ProfilePage from "../features/Profile";
 import LoginPage from "../features/Login";
@@ -24,6 +25,10 @@ export const router = createBrowserRouter([
       {
         path: AppRoute.Tasks,
         element: <TasksPage />,
+      },
+      {
+        path: AppRoute.CreateTask,
+        element: <CreateTaskPage />,
       },
       {
         path: AppRoute.Activity,

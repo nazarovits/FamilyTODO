@@ -2,9 +2,9 @@
 
 ## Status
 
-Task schema is defined in Prisma and applied to Neon. The API endpoints are
-implemented; web implementation and database-backed persistence tests remain
-pending.
+Task schema is defined in Prisma and applied to Neon. The API and web task
+creation flow are implemented; UI coverage and database-backed persistence
+tests remain pending.
 
 ## Goal
 
@@ -31,7 +31,8 @@ separate slices.
 
 - The Prisma schema and Task Creation migration have been applied to Neon.
 - The API exposes authenticated assignee lookup and task creation routes.
-- The web Tasks page is currently a placeholder.
+- The Tasks page now links to the create-task form; task listing is still out
+  of scope.
 - The current data model assumes one family installation and has no family or
   membership table. Assignment rules therefore apply to the users in this
   single-family installation; do not imply multi-family isolation.
@@ -76,8 +77,8 @@ below before implementation.
 | Estimate | Optional positive integer in minutes |
 | Assignee | Required for this standard-task slice; selected from allowed users |
 | Creator | Derived from the authenticated session |
-| Due date | Optional timestamp stored as a UTC instant |
-| Reminder date | Optional timestamp stored as a UTC instant |
+| Due date and time | Optional separate date and time inputs; time uses a 24-hour format; provide both or leave both blank, then combine in local time and send as a UTC instant |
+| Reminder date and time | Optional separate date and time inputs; time uses a 24-hour format; provide both or leave both blank, then combine in local time and send as a UTC instant |
 | Approval required | Include in the form and persist; default `false` |
 
 Do not add fields for later features unless a documented requirement depends on
@@ -178,13 +179,13 @@ changes, update this document before proceeding.
 
 ### 3. Web
 
-- [ ] Add a create-task route or entry point from the Tasks screen.
-- [ ] Load and display allowed assignees.
-- [ ] Build an accessible task form for the confirmed fields.
-- [ ] Add client-side validation consistent with server rules.
-- [ ] Submit through the shared API client and handle loading, failure, and
+- [x] Add a create-task route and entry point from the Tasks screen.
+- [x] Load and display allowed assignees.
+- [x] Build an accessible task form for the confirmed fields.
+- [x] Add client-side validation consistent with server rules.
+- [x] Submit through the shared API client and handle loading, failure, and
   success states.
-- [ ] Style the form with a colocated CSS Module and follow
+- [x] Style the form with a colocated CSS Module and follow
   [layout.md](../ui/layout.md).
 - [ ] Add UI coverage for the successful flow and important validation/error
   states.
